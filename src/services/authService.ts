@@ -36,10 +36,31 @@ class AuthService {
   }
 
   async getUserData(id: number): Promise<Usuario> {
+    if (isNaN(id) || id <= 0) {
+      const errorMsg = `[AuthService] ID de usuário inválido fornecido: ${id}`;
+      console.error(errorMsg);
+      throw new Error('ID de usuário inválido.');
+    }
     console.log(`[AuthService] Buscando dados para o usuário ID: ${id}`);
     const { data } = await api.get<Usuario>(`/usuarios/${id}`);
     console.log('[AuthService] Dados do usuário obtidos da API.');
     return data;
+  }
+  async getUserByEmail(email: string): Promise<Usuario> {
+    try {
+      console.log(`[AuthService] Buscando dados do usuário pelo email: ${email}`);
+      // Endpoint para buscar usuário por email. Assumimos que retorna um array.
+      const { data } = await api.get<Usuario[]>('/usuarios', { params: { email } });
+      if (data && data.length > 0) {
+        console.log('[AuthService] Usuário encontrado via email.');
+        return data[0]; // Retorna o primeiro usuário encontrado.
+      }
+      throw new Error('Nenhum usuário encontrado com o email fornecido.');
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Erro ao buscar dados do usuário por email';
+      console.error('[AuthService] Erro ao buscar usuário por email:', errorMessage);
+      throw new Error(errorMessage);
+    }
   }
 }
 

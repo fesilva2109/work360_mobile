@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Ex: 'http://192.168.1.10:8080/api'.
 // 'localhost' não funciona em emuladores Android ou dispositivos físicos.
 // Para descobrir seu IP, use 'ipconfig' (Windows) ou 'ifconfig'/'ip a' (Mac/Linux).
-const API_BASE_URL = 'http://192.168.0.183:8080';
+const API_BASE_URL = 'http://172.16.55.80:8080';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -14,6 +14,23 @@ export const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+/**
+ * Interceptor de requisição para adicionar o token JWT automaticamente.
+ * Antes de cada requisição, ele busca o token no AsyncStorage e o anexa
+ * ao cabeçalho 'Authorization'.
+ */
+api.interceptors.request.use(
+  async (config: InternalAxiosRequestConfig) => {
+    const token = await AsyncStorage.getItem('@work360:token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 /**
  * Interceptor de resposta para lidar com erros de autenticação (401).

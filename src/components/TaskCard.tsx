@@ -38,7 +38,7 @@ export function TaskCard({ tarefa, onPress, onComplete }: TaskCardProps) {
     }
   };
 
-  const isCompleted = tarefa.status === 'CONCLUIDA';
+  const isCompleted = tarefa.concluida;
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
@@ -79,10 +79,12 @@ export function TaskCard({ tarefa, onPress, onComplete }: TaskCardProps) {
             </View>
           )}
 
-          {tarefa.estimativa && (
+          {tarefa.estimativaMinutos > 0 && (
             <View style={styles.estimateBadge}>
               <Clock size={14} color={theme.colors.textSecondary} />
-              <Text style={styles.estimateText}>{tarefa.estimativa}h</Text>
+              <Text style={styles.estimateText}>
+                {(tarefa.estimativaMinutos / 60).toFixed(1)}h
+              </Text>
             </View>
           )}
         </View>

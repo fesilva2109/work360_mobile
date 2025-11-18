@@ -27,28 +27,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   async function loadStorageData(): Promise<void> {
     try {
-      const storedToken = await AsyncStorage.getItem('@work360:token');      
+      // Carrega tanto o token quanto o usuário do storage
+      const storedToken = await AsyncStorage.getItem('@work360:token');
+      const storedUser = await AsyncStorage.getItem('@work360:user');
 
-      if (storedToken) {
+      if (storedToken && storedUser) {
         console.log('[AuthContext] Dados da sessão encontrados no storage. Carregando...');
-        // Decodifica o token para obter o ID do usuário (sub = subject)
-        const decodedToken: { sub: string } = jwtDecode(storedToken);
-        const userId = parseInt(decodedToken.sub, 10);
+        const user: Usuario = JSON.parse(storedUser);
 
         // Configura o token na instância da API para requisições futuras
         api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
 
-        // Busca os dados do usuário e atualiza o estado
-        const user = await authService.getUserData(userId);
+        // Atualiza o estado com os dados do storage, sem chamada de rede
         setUsuario(user);
         setToken(storedToken);
       } else {
         console.log('[AuthContext] Nenhum dado de sessão encontrado.');
-        setLoading(false); // Garante que o loading termine se não houver token
       }
     } catch (error) {
       console.error('Falha ao carregar dados da sessão:', error);
-      // Se houver erro (ex: JSON inválido ou token expirado), limpa o storage
+      // Se houver erro (ex: JSON inválido ou token expirado), limpar o storage
       await signOut();
     } finally {
       // Garante que o estado de carregamento seja desativado em todos os cenários,
@@ -70,8 +68,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Configura o token na instância da API para requisições futuras
     api.defaults.headers.common['Authorization'] = `Bearer ${new_token}`;
 
-    // Salva apenas o token no AsyncStorage
-    await AsyncStorage.setItem('@work360:token', new_token);
+    // Salva o token e o objeto do usuário no AsyncStorage
+    await AsyncStorage.multiSet([
+      ['@work360:token', new_token],
+      ['@work360:user', JSON.stringify(user)],
+    ]);
     console.log('[AuthContext] Sessão salva no AsyncStorage.');
   }
 
@@ -79,19 +80,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('[AuthContext] Iniciando processo de signIn...');
     setLoading(true);
     try {
-      const response = await authService.login(credentials);
-      const { token: newToken } = response;
+      // Otimização: A resposta do login agora inclui o token E o objeto do usuário.
+      const { token: newToken, usuario: user } = await authService.login(credentials);
       console.log('[AuthContext] Login API bem-sucedido, token recebido.');
-
-      // [PONTO CHAVE] Configura o token na instância da API ANTES de fazer a próxima chamada.
-      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
-
-      // Decodifica o token para obter o ID do usuário (sub = subject)
-      const decodedToken: { sub: string } = jwtDecode(newToken);
-      const userId = parseInt(decodedToken.sub, 10);
-      console.log(`[AuthContext] Token decodificado. ID do usuário: ${userId}`);
-
-      const user = await authService.getUserData(userId);
+      if (!user || !newToken) {
+        throw new Error('Resposta de login inválida do servidor.');
+      }
       await setupSession(user, newToken);
     } catch (error) {
       console.error('[AuthContext] Erro durante o signIn:', error);
@@ -105,11 +99,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('[AuthContext] Iniciando processo de signUp...');
     setLoading(true);
     try {
-      // Captura o usuário retornado pela API de registro
-      const newUser = await authService.register(userData);
+      // 1. Registra o usuário. A API de registro já retorna o objeto do novo usuário.
+      await authService.register(userData);
       console.log('[AuthContext] Registro bem-sucedido. Fazendo login automático...');
-      const { token: newToken } = await authService.login({ email: userData.email, senha: userData.senha });
-      await setupSession(newUser, newToken);
+      // 2. Faz o login para obter o token e os dados do usuário recém-criado.
+      const { token: newToken, usuario: newUser } = await authService.login({ email: userData.email, senha: userData.senha });
+      // 3. Usa o usuário e o token do login para configurar a sessão.
+      await setupSession(newUser!, newToken);
     } catch (error) {
       console.error('[AuthContext] Erro durante o signUp:', error);
       throw error;
@@ -121,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   async function signOut(): Promise<void> {
     setLoading(true);
     try {
-      await AsyncStorage.removeItem('@work360:token');
+      await AsyncStorage.multiRemove(['@work360:token', '@work360:user']);
       setUsuario(null);
       setToken(null);
       delete api.defaults.headers.common['Authorization'];

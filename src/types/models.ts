@@ -12,6 +12,7 @@ export interface Tarefa {
   descricao?: string;
   prioridade: 'BAIXA' | 'MEDIA' | 'ALTA';
   estimativaMinutos: number;
+  concluida: boolean;
 }
 
 export interface Reuniao {
@@ -33,7 +34,7 @@ export interface AnalyticsMetrica {
   periodoMaisProdutivo: string;
 }
 
-export type TipoEvento =
+export type TipoEvento = 
   | 'START_FOCUS'
   | 'END_FOCUS'
   | 'TASK_COMPLETE'
@@ -85,6 +86,17 @@ export interface LoginRequest {
   senha: string;
 }
 
+export type Prioridade = "BAIXA" | "MEDIA" | "ALTA";
+
+// Na criação, 'id' é gerado pelo banco e 'concluida' tem o valor padrão 'false'.
+export type CreateTarefaDTO = Omit<Tarefa, 'id' | 'concluida'>;
+export type UpdateTarefaDTO = Omit<Tarefa, 'id'>;
+
+export interface SpringPage<T> {
+  content: T[];
+}
+
+
 export interface RegisterRequest {
   nome: string;
   email: string;
@@ -92,6 +104,6 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  token: string; // A API real retorna apenas o token
-  // O usuário será buscado em um endpoint separado após o login
+  token: string;
+  usuario: Usuario;
 }

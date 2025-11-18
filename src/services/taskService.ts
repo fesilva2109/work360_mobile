@@ -1,7 +1,7 @@
 import api from './api';
-import { Tarefa, Usuario } from '../types/models';
+import { Tarefa, CreateTarefaDTO, UpdateTarefaDTO, SpringPage } from '../types/models';
 
-type TarefaFormData = Omit<Tarefa, 'id' | 'usuarioId'>;
+
 type TarefaUpdatePayload = Partial<Omit<Tarefa, 'id' | 'usuarioId'>>; // For updating
 
 class TaskService {
@@ -10,13 +10,12 @@ class TaskService {
    * @param userId - O ID do usuário que está criando a tarefa.
    * @param formData - Os dados da tarefa vindos do formulário.
    */
-  async createTask(userId: number, formData: TarefaFormData): Promise<Tarefa> {
+  async createTask(taskData: CreateTarefaDTO): Promise<Tarefa> {
     try {
       // Assemble the final payload that the backend expects, combining the user ID
       // with the form data into a single flat object.
-      const taskData = {
-        ...formData,
-        usuarioId: userId,
+      const headers = {
+        'Content-Type': 'application/json',
       };
 
       console.log('[TaskService] Criando nova tarefa...', taskData);
@@ -34,12 +33,16 @@ class TaskService {
   /**
    * Busca todas as tarefas (geralmente para um admin).
    */
-  async getTasks(): Promise<Tarefa[]> {
+  async getTasks(pageNumber = 0): Promise<Tarefa[]> {
     try {
-      console.log('[TaskService] Buscando todas as tarefas...');
-      const { data } = await api.get<Tarefa[]>('/tarefas');
-      console.log(`[TaskService] ${data.length} tarefas encontradas.`);
-      return data;
+      console.log(`[TaskService] Buscando tarefas para a página: ${pageNumber}`);
+      // O backend retorna um objeto de paginação do Spring (Page<T>).
+      // Precisamos especificar o tipo de retorno correto e extrair o array de 'content'.
+      const { data } = await api.get<SpringPage<Tarefa>>('/tarefas', {
+        params: { page: pageNumber }, // Spring usa 'page' por padrão
+      });
+      console.log(`[TaskService] ${data.content.length} tarefas encontradas nesta página.`);
+      return data.content; // Retornamos apenas o array de tarefas
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido ao buscar tarefas';
       console.error('[TaskService] Erro ao buscar tarefas:', errorMessage);
@@ -47,24 +50,6 @@ class TaskService {
     }
   }
 
-  /**
-   * Busca as tarefas de um usuário específico.
-   * NOTA: O backend precisa de um endpoint como `/usuarios/{id}/tarefas`.
-   * Se o endpoint for diferente, a URL abaixo precisa ser ajustada.
-   */
-  async getTasksByUserId(userId: number): Promise<Tarefa[]> {
-    try {
-      console.log(`[TaskService] Buscando tarefas para o usuário ID: ${userId}`);
-      // Ajustado para usar query parameter, conforme a especificação do backend.
-      const { data } = await api.get<Tarefa[]>('/tarefas', { params: { usuarioId: userId } });
-      console.log(`[TaskService] ${data.length} tarefas encontradas para o usuário.`);
-      return data;
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido ao buscar tarefas do usuário';
-      console.error('[TaskService] Erro ao buscar tarefas do usuário:', errorMessage);
-      throw new Error(errorMessage);
-    }
-  }
 
   /**
    * Busca uma tarefa específica pelo seu ID.
