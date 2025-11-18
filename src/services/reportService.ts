@@ -1,44 +1,44 @@
 import api from './api';
-import { Relatorio } from '../types/models';
+import { RelatorioGerado } from '../types/models';
+
+interface GerarRelatorioRequest {
+  usuarioId: number;
+  dataInicio: string; // Formato YYYY-MM-DD
+  dataFim: string; // Formato YYYY-MM-DD
+}
 
 class ReportService {
-  async getReports(usuarioId: number): Promise<Relatorio[]> {
-    const { data } = await api.get<Relatorio[]>(`/relatorios`, {
-      params: { usuario_id: usuarioId }
+  /**
+   * Etapa 1: Inicia a geração de um relatório base no backend.
+   * Retorna o relatório parcial, contendo o ID necessário para a próxima etapa.
+   * @param params - Contém usuarioId, dataInicio e dataFim.
+   */
+  async gerarRelatorioBase(
+    params: GerarRelatorioRequest
+  ): Promise<RelatorioGerado> {
+    console.log('[ReportService] Etapa 1: Gerando relatório base...');
+    const { data } = await api.post<RelatorioGerado>('/relatorios/gerar', null, {
+      params: {
+        usuarioId: params.usuarioId,
+        dataInicio: params.dataInicio,
+        dataFim: params.dataFim,
+      },
     });
-    return data.sort((a, b) =>
-      new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime()
-    );
-  }
-
-  async getLatestReport(usuarioId: number): Promise<Relatorio | null> {
-    const reports = await this.getReports(usuarioId);
-    return reports[0] || null;
-  }
-
-  async getReportById(id: number): Promise<Relatorio> {
-    const { data } = await api.get<Relatorio>(`/relatorios/${id}`);
+    console.log(`[ReportService] Relatório base criado com ID: ${data.id}`);
     return data;
   }
 
-  async generateReport(usuarioId: number): Promise<Relatorio> {
-    const { data } = await api.post<Relatorio>('/relatorios/gerar', {
-      usuario_id: usuarioId,
-    });
+  /**
+   * Etapa 2: Solicita o enriquecimento do relatório pela IA.
+   * @param relatorioId - O ID do relatório gerado na Etapa 1.
+   */
+  async enriquecerRelatorioComIA(
+    relatorioId: number
+  ): Promise<RelatorioGerado> {
+    console.log(`[ReportService] Etapa 2: Enriquecendo relatório ID ${relatorioId} com IA...`);
+    const { data } = await api.get<RelatorioGerado>(`/ia/relatorio/${relatorioId}`);
+    console.log('[ReportService] Relatório enriquecido com sucesso.');
     return data;
-  }
-
-  async getReportsByPeriod(usuarioId: number, dataInicio: string, dataFim: string): Promise<Relatorio[]> {
-    const { data } = await api.get<Relatorio[]>(`/relatorios`, {
-      params: { usuario_id: usuarioId }
-    });
-
-    return data.filter(r => {
-      const reportDate = new Date(r.data_inicio);
-      const startDate = new Date(dataInicio);
-      const endDate = new Date(dataFim);
-      return reportDate >= startDate && reportDate <= endDate;
-    });
   }
 }
 

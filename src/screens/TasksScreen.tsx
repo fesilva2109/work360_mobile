@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,72 +6,75 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Alert,
+  SafeAreaView,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 import { TaskCard } from '../components/TaskCard';
-import { Button } from '../components/Button';
 import { theme } from '../styles/theme';
 import taskService from '../services/taskService';
 import analyticsService from '../services/analyticsService';
 import { Tarefa } from '../types/models';
 import { Plus } from 'lucide-react-native';
 
+// Define os tipos de filtro baseados na prioridade
+type PrioridadeFilter = 'TODAS' | 'ALTA' | 'MEDIA' | 'BAIXA';
+
 export function TasksScreen() {
   const router = useRouter();
   const { usuario } = useAuth();
-  const [tasks, setTasks] = useState<Tarefa[]>([]);
+  const [allTasks, setAllTasks] = useState<Tarefa[]>([]);
+  const [filteredTasks, setFilteredTasks] = useState<Tarefa[]>([]);
   const [loading, setLoading] = useState(false);
-  const [filter, setFilter] = useState<'TODOS' | 'PENDENTE' | 'EM_PROGRESSO' | 'CONCLUIDA'>('TODOS');
+  const [filter, setFilter] = useState<PrioridadeFilter>('TODAS');
 
-  useEffect(() => {
-    loadTasks();
-  }, [filter]);
-
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     if (!usuario) return;
 
     setLoading(true);
     try {
-      let data: Tarefa[];
-      if (filter === 'TODOS') {
-        data = await taskService.getTasks(usuario.id);
-      } else {
-        data = await taskService.getTasksByStatus(usuario.id, filter);
-      }
-      setTasks(data);
+      const data = await taskService.getTasks();
+      setAllTasks(data);
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível carregar as tarefas');
+      console.error('Erro ao carregar as tarefas:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [usuario]);
+
+  useEffect(() => {
+    loadTasks();
+  }, [loadTasks]);
+
+  useEffect(() => {
+    if (filter === 'TODAS') {
+      setFilteredTasks(allTasks);
+    } else {
+      const filtered = allTasks.filter((task) => task.prioridade === filter);
+      setFilteredTasks(filtered);
+    }
+  }, [filter, allTasks]);
 
   const handleCompleteTask = async (tarefa: Tarefa) => {
     if (!usuario) return;
 
     try {
-      const newStatus = tarefa.status === 'CONCLUIDA' ? 'PENDENTE' : 'CONCLUIDA';
-      await taskService.updateTask(tarefa.id, { status: newStatus });
+      // 1. Envia o evento de conclusão para o analytics
+      await analyticsService.sendEvent({
+        usuarioId: usuario.id,
+        tarefaId: tarefa.id,
+        tipoEvento: 'TASK_COMPLETE',
+        timestamp: new Date().toISOString(),
+      });
 
-      if (newStatus === 'CONCLUIDA') {
-        await analyticsService.createEvent({
-          usuario_id: usuario.id,
-          tarefa_id: tarefa.id,
-          tipo_evento: 'TAREFA_CONCLUIDA',
-          timestamp: new Date().toISOString(),
-        });
+      // 2. Deleta a tarefa do banco de dados
+      await taskService.deleteTask(tarefa.id);
 
-        const metricsToday = await analyticsService.getTodayMetrics(usuario.id);
-        await analyticsService.updateTodayMetrics(usuario.id, {
-          tarefas_concluidas_no_dia: (metricsToday?.tarefas_concluidas_no_dia || 0) + 1,
-        });
-      }
-
-      loadTasks();
+      // 3. Recarrega as tarefas para atualizar a UI
+      await loadTasks();
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível atualizar a tarefa');
+      console.error('Erro ao concluir a tarefa:', error);
     }
   };
 
@@ -87,13 +90,15 @@ export function TasksScreen() {
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>Nenhuma tarefa encontrada</Text>
       <Text style={styles.emptySubtext}>
-        Comece criando sua primeira tarefa
+        {filter === 'TODAS'
+          ? 'Comece criando sua primeira tarefa'
+          : `Não há tarefas com prioridade ${filter.toLowerCase()}`}
       </Text>
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Tarefas</Text>
         <TouchableOpacity
@@ -104,30 +109,37 @@ export function TasksScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.filterContainer}>
-        {(['TODOS', 'PENDENTE', 'EM_PROGRESSO', 'CONCLUIDA'] as const).map((status) => (
-          <TouchableOpacity
-            key={status}
-            style={[
-              styles.filterButton,
-              filter === status && styles.filterButtonActive,
-            ]}
-            onPress={() => setFilter(status)}
-          >
-            <Text
+      {/* Filtro por Prioridade */}
+      <View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContainer}
+        >
+          {(['TODAS', 'ALTA', 'MEDIA', 'BAIXA'] as const).map((prioridade) => (
+            <TouchableOpacity
+              key={prioridade}
               style={[
-                styles.filterText,
-                filter === status && styles.filterTextActive,
+                styles.filterButton,
+                filter === prioridade && styles.filterButtonActive,
               ]}
+              onPress={() => setFilter(prioridade)}
             >
-              {status === 'TODOS' ? 'Todas' : status.replace('_', ' ')}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                style={[
+                  styles.filterText,
+                  filter === prioridade && styles.filterTextActive,
+                ]}
+              >
+                {prioridade.charAt(0) + prioridade.slice(1).toLowerCase()}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
       <FlatList
-        data={tasks}
+        data={filteredTasks}
         renderItem={renderTask}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContent}
@@ -136,21 +148,20 @@ export function TasksScreen() {
         }
         ListEmptyComponent={renderEmpty}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: theme.spacing.lg,
-    backgroundColor: theme.colors.background,
   },
   title: {
     fontSize: 28,
@@ -171,9 +182,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.md,
     gap: theme.spacing.sm,
-    backgroundColor: theme.colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
   },
   filterButton: {
     paddingHorizontal: theme.spacing.md,
@@ -188,12 +196,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: theme.colors.text,
+    textTransform: 'capitalize',
   },
   filterTextActive: {
     color: '#FFFFFF',
   },
   listContent: {
     padding: theme.spacing.lg,
+    paddingTop: 0,
   },
   emptyContainer: {
     alignItems: 'center',

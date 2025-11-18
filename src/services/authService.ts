@@ -1,76 +1,45 @@
 import api from './api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LoginRequest, RegisterRequest, AuthResponse, Usuario } from '../types/models';
+import {
+  LoginRequest,
+  RegisterRequest,
+  AuthResponse,
+  Usuario,
+} from '../types/models';
 
 class AuthService {
+  //Realiza o login do usuário
+ 
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     try {
-      const { data: usuarios } = await api.get<Usuario[]>('/usuarios', {
-        params: { email: credentials.email }
-      });
-
-      const usuario = usuarios.find(u => u.email === credentials.email);
-
-      if (!usuario) {
-        throw new Error('Usuário não encontrado');
-      }
-
-      const mockToken = `mock_token_${usuario.id}_${Date.now()}`;
-
-      await AsyncStorage.setItem('@work360:token', mockToken);
-      await AsyncStorage.setItem('@work360:user', JSON.stringify(usuario));
-
-      return {
-        token: mockToken,
-        usuario: {
-          id: usuario.id,
-          nome: usuario.nome,
-          email: usuario.email,
-        }
-      };
+      console.log('[AuthService] Tentando fazer login com:', { email: credentials.email });
+      const { data } = await api.post<AuthResponse>('/login', credentials);
+      console.log('[AuthService] Login API call bem-sucedido.');
+      return data;
     } catch (error: any) {
+      console.error('[AuthService] Erro na chamada de login API:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Erro ao fazer login');
     }
   }
 
-  async register(userData: RegisterRequest): Promise<AuthResponse> {
+  //Registra um novo usuário
+ 
+  async register(userData: RegisterRequest): Promise<Usuario> {
     try {
+      console.log('[AuthService] Tentando registrar novo usuário com:', { email: userData.email });
       const { data: usuario } = await api.post<Usuario>('/usuarios', userData);
-
-      const mockToken = `mock_token_${usuario.id}_${Date.now()}`;
-
-      await AsyncStorage.setItem('@work360:token', mockToken);
-      await AsyncStorage.setItem('@work360:user', JSON.stringify(usuario));
-
-      return {
-        token: mockToken,
-        usuario: {
-          id: usuario.id,
-          nome: usuario.nome,
-          email: usuario.email,
-        }
-      };
+      console.log('[AuthService] Registro API call bem-sucedido.');
+      return usuario;
     } catch (error: any) {
+      console.error('[AuthService] Erro na chamada de registro API:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Erro ao criar conta');
     }
   }
 
-  async logout(): Promise<void> {
-    await AsyncStorage.multiRemove(['@work360:token', '@work360:user']);
-  }
-
-  async getCurrentUser(): Promise<Usuario | null> {
-    try {
-      const userJson = await AsyncStorage.getItem('@work360:user');
-      return userJson ? JSON.parse(userJson) : null;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  async isAuthenticated(): Promise<boolean> {
-    const token = await AsyncStorage.getItem('@work360:token');
-    return !!token;
+  async getUserData(id: number): Promise<Usuario> {
+    console.log(`[AuthService] Buscando dados para o usuário ID: ${id}`);
+    const { data } = await api.get<Usuario>(`/usuarios/${id}`);
+    console.log('[AuthService] Dados do usuário obtidos da API.');
+    return data;
   }
 }
 

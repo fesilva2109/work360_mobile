@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, SafeAreaView } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { Card } from '../components/Card';
 import { theme } from '../styles/theme';
@@ -19,28 +19,32 @@ export function DashboardScreen() {
   });
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    if (usuario) {
+      loadDashboardData();
+    }
+  }, [usuario]); // A dependência agora é o objeto 'usuario'
 
   const loadDashboardData = async () => {
     if (!usuario) return;
 
     setLoading(true);
     try {
-      const [tarefas, reunioes, metricasHoje] = await Promise.all([
-        taskService.getTasks(usuario.id),
-        meetingService.getUpcomingMeetings(usuario.id),
-        analyticsService.getTodayMetrics(usuario.id),
+      const [tarefasResponse, reunioesResponse, metricasHoje] = await Promise.all([
+        // Passa o ID do usuário para buscar as tarefas específicas dele
+        taskService.getTasksByUserId(usuario.id),
+        // Passa o ID do usuário para buscar as reuniões específicas dele
+        meetingService.getMeetingsByUserId(usuario.id),
+        // Passa o ID do usuário para buscar as métricas do dia
+        analyticsService.getTodaysMetrics(usuario.id),
       ]);
 
-      const pendentes = tarefas.filter(t => t.status !== 'CONCLUIDA').length;
-      const concluidas = tarefas.filter(t => t.status === 'CONCLUIDA').length;
+      const tarefasPendentes = tarefasResponse.length;
 
       setStats({
-        tarefasPendentes: pendentes,
-        tarefasConcluidas: concluidas,
-        proximasReunioes: reunioes.length,
-        minutosFoco: metricasHoje?.minutos_foco || 0,
+        tarefasPendentes: tarefasPendentes,
+        tarefasConcluidas: metricasHoje?.tarefasConcluidasNoDia || 0,
+        proximasReunioes: reunioesResponse.length,
+        minutosFoco: metricasHoje?.minutosFoco || 0,
       });
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error);
@@ -50,76 +54,78 @@ export function DashboardScreen() {
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl refreshing={loading} onRefresh={loadDashboardData} />
-      }
-    >
-      <View style={styles.header}>
-        <Text style={styles.greeting}>Olá, {usuario?.nome}!</Text>
-        <Text style={styles.date}>
-          {new Date().toLocaleDateString('pt-BR', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-          })}
-        </Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={loadDashboardData} />
+        }
+      >
+        <View style={styles.header}>
+          <Text style={styles.greeting}>Olá, {usuario?.nome}!</Text>
+          <Text style={styles.date}>
+            {new Date().toLocaleDateString('pt-BR', {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            })}
+          </Text>
+        </View>
 
-      <View style={styles.statsGrid}>
-        <Card style={styles.statCard} variant="elevated">
-          <View style={[styles.iconContainer, { backgroundColor: '#FEF3C7' }]}>
-            <Clock size={24} color="#F59E0B" />
-          </View>
-          <Text style={styles.statValue}>{stats.tarefasPendentes}</Text>
-          <Text style={styles.statLabel}>Tarefas Pendentes</Text>
+        <View style={styles.statsGrid}>
+          <Card style={styles.statCard} variant="elevated">
+            <View style={[styles.iconContainer, { backgroundColor: '#FEF3C7' }]}>
+              <Clock size={24} color="#F59E0B" />
+            </View>
+            <Text style={styles.statValue}>{stats.tarefasPendentes}</Text>
+            <Text style={styles.statLabel}>Tarefas Pendentes</Text>
+          </Card>
+
+          <Card style={styles.statCard} variant="elevated">
+            <View style={[styles.iconContainer, { backgroundColor: '#D1FAE5' }]}>
+              <CheckCircle size={24} color="#10B981" />
+            </View>
+            <Text style={styles.statValue}>{stats.tarefasConcluidas}</Text>
+            <Text style={styles.statLabel}>Concluídas Hoje</Text>
+          </Card>
+
+          <Card style={styles.statCard} variant="elevated">
+            <View style={[styles.iconContainer, { backgroundColor: '#DBEAFE' }]}>
+              <Calendar size={24} color="#3B82F6" />
+            </View>
+            <Text style={styles.statValue}>{stats.proximasReunioes}</Text>
+            <Text style={styles.statLabel}>Próximas Reuniões</Text>
+          </Card>
+
+          <Card style={styles.statCard} variant="elevated">
+            <View style={[styles.iconContainer, { backgroundColor: '#E0E7FF' }]}>
+              <TrendingUp size={24} color="#6366F1" />
+            </View>
+            <Text style={styles.statValue}>{stats.minutosFoco}</Text>
+            <Text style={styles.statLabel}>Minutos de Foco</Text>
+          </Card>
+        </View>
+
+        <Card style={styles.welcomeCard} variant="elevated">
+          <Text style={styles.welcomeTitle}>Bem-vindo ao Work360</Text>
+          <Text style={styles.welcomeText}>
+            Gerencie suas tarefas, reuniões e produtividade em um só lugar.
+            Comece explorando as funcionalidades usando a navegação abaixo.
+          </Text>
         </Card>
-
-        <Card style={styles.statCard} variant="elevated">
-          <View style={[styles.iconContainer, { backgroundColor: '#D1FAE5' }]}>
-            <CheckCircle size={24} color="#10B981" />
-          </View>
-          <Text style={styles.statValue}>{stats.tarefasConcluidas}</Text>
-          <Text style={styles.statLabel}>Concluídas Hoje</Text>
-        </Card>
-
-        <Card style={styles.statCard} variant="elevated">
-          <View style={[styles.iconContainer, { backgroundColor: '#DBEAFE' }]}>
-            <Calendar size={24} color="#3B82F6" />
-          </View>
-          <Text style={styles.statValue}>{stats.proximasReunioes}</Text>
-          <Text style={styles.statLabel}>Próximas Reuniões</Text>
-        </Card>
-
-        <Card style={styles.statCard} variant="elevated">
-          <View style={[styles.iconContainer, { backgroundColor: '#E0E7FF' }]}>
-            <TrendingUp size={24} color="#6366F1" />
-          </View>
-          <Text style={styles.statValue}>{stats.minutosFoco}</Text>
-          <Text style={styles.statLabel}>Minutos de Foco</Text>
-        </Card>
-      </View>
-
-      <Card style={styles.welcomeCard} variant="elevated">
-        <Text style={styles.welcomeTitle}>Bem-vindo ao Work360</Text>
-        <Text style={styles.welcomeText}>
-          Gerencie suas tarefas, reuniões e produtividade em um só lugar.
-          Comece explorando as funcionalidades usando a navegação abaixo.
-        </Text>
-      </Card>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
   },
   content: {
     padding: theme.spacing.lg,
+    paddingBottom: theme.spacing.xxl, // Adiciona espaço no final da lista
   },
   header: {
     marginBottom: theme.spacing.lg,

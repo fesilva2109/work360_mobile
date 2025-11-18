@@ -1,38 +1,33 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const MOCKAPI_BASE_URL = 'https://YOUR_MOCKAPI_PROJECT_ID.mockapi.io/api/v1';
+// [IMPORTANTE] Substitua 'SEU_IP_LOCAL' pelo endereço IP da sua máquina na rede.
+// Ex: 'http://192.168.1.10:8080/api'.
+// 'localhost' não funciona em emuladores Android ou dispositivos físicos.
+// Para descobrir seu IP, use 'ipconfig' (Windows) ou 'ifconfig'/'ip a' (Mac/Linux).
+const API_BASE_URL = 'http://192.168.0.183:8080';
 
 export const api = axios.create({
-  baseURL: MOCKAPI_BASE_URL,
+  baseURL: API_BASE_URL,
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-api.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
-    try {
-      const token = await AsyncStorage.getItem('@work360:token');
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    } catch (error) {
-      console.error('Erro ao recuperar token:', error);
-    }
-    return config;
-  },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  }
-);
-
+/**
+ * Interceptor de resposta para lidar com erros de autenticação (401).
+ * Se um token for inválido, ele limpa o armazenamento local para forçar um novo login.
+ */
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
+    // Mantemos o log de erro de resposta, que é útil.
+    console.error(`[API Response Error] Status: ${error.response?.status} | URL: ${error.config?.url}`, error.response?.data || error.message);
     if (error.response?.status === 401) {
-      await AsyncStorage.multiRemove(['@work360:token', '@work360:user']);
+      console.warn('[API Response Error] Erro 401 (Não Autorizado). Limpando token local.');
+      await AsyncStorage.removeItem('@work360:token');
+      // Idealmente, aqui você chamaria uma função de logout do AuthContext para limpar o estado globalmente.
     }
     return Promise.reject(error);
   }

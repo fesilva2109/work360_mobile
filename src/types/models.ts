@@ -2,75 +2,82 @@ export interface Usuario {
   id: number;
   nome: string;
   email: string;
-  senha?: string;
+  // senha não é armazenada no frontend, apenas enviada na criação/login
 }
 
 export interface Tarefa {
   id: number;
-  usuario_id: number;
+  usuarioId: number;
   titulo: string;
   descricao?: string;
-  prioridade?: 'ALTA' | 'MEDIA' | 'BAIXA';
-  estimativa?: number;
-  status?: 'PENDENTE' | 'EM_PROGRESSO' | 'CONCLUIDA';
-  criado_em?: string;
+  prioridade: 'BAIXA' | 'MEDIA' | 'ALTA';
+  estimativaMinutos: number;
 }
 
 export interface Reuniao {
   id: number;
-  usuario_id: number;
+  usuarioId: number;
   titulo: string;
   descricao?: string;
-  data: string;
+  data: string; // ISO Datetime
   link?: string;
 }
 
 export interface AnalyticsMetrica {
   id: number;
-  usuario_id: number;
-  data: string;
-  minutos_foco: number;
-  minutos_reuniao: number;
-  tarefas_concluidas_no_dia: number;
-  periodo_mais_produtivo?: string;
+  usuarioId: number;
+  data: string; // YYYY-MM-DD
+  minutosFoco: number;
+  minutosReuniao: number;
+  tarefasConcluidasNoDia: number;
+  periodoMaisProdutivo: string;
 }
+
+export type TipoEvento =
+  | 'START_FOCUS'
+  | 'END_FOCUS'
+  | 'TASK_COMPLETE'
+  | 'REUNIAO_INICIADA';
 
 export interface AnalyticsEvento {
   id?: number;
-  usuario_id: number;
-  tarefa_id?: number;
-  reuniao_id?: number;
-  tipo_evento: 'TAREFA_CRIADA' | 'TAREFA_CONCLUIDA' | 'REUNIAO_INICIADA' | 'REUNIAO_FINALIZADA' | 'FOCO_INICIADO' | 'FOCO_FINALIZADO';
+  usuarioId: number;
+  tarefaId?: number;
+  reuniaoId?: number;
+  tipoEvento: TipoEvento;
   timestamp: string;
 }
 
-export interface Relatorio {
-  id: number;
-  usuario_id: number;
-  data_inicio: string;
-  data_fim: string;
-  tarefas_concluidas: number;
-  tarefas_pendentes: number;
-  reunioes_realizadas: number;
-  minutos_foco_total: number;
-  percentual_conclusao: number;
-  risco_burnout: number;
-  tendencia_produtividade: 'CRESCENTE' | 'ESTAVEL' | 'DECRESCENTE';
-  tendencia_foco: 'CRESCENTE' | 'ESTAVEL' | 'DECRESCENTE';
-  insights: string;
-  recomendacaoIA: string;
-  resumo_geral: string;
-  criado_em: string;
-  relatorio_anterior_id?: number;
+export interface RecomendacaoIA {
+  focoIdeal: string;
+  pausasRecomendadas: number;
+  riscoBurnout: string;
+  sugestoes: string[];
 }
 
-export interface DadosIoT {
-  id?: number;
+export interface ResumoIA {
+  statusGeral: string;
+  principalForca: string;
+  principalRisco: string;
+}
+
+export interface RelatorioGerado {
+  id: number;
   usuarioId: number;
-  batimentosCardiacos: number;
-  nivelRuidoDB: number;
-  tempoFocoSegundos: number;
-  timestamp?: string;
+  dataInicio: string;
+  dataFim: string;
+  tarefasConcluidas: number;
+  tarefasPendentes: number;
+  reunioesRealizadas: number;
+  minutosFocoTotal: number;
+  percentualConclusao: number;
+  riscoBurnout: number;
+  tendenciaProdutividade: string;
+  tendenciaFoco: string;
+  insights: string[]; // Espera-se um array de strings
+  recomendacaoIA: RecomendacaoIA; // Objeto aninhado
+  resumoGeral: ResumoIA; // Objeto aninhado
+  criadoEm: string;
 }
 
 export interface LoginRequest {
@@ -85,6 +92,6 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  token: string;
-  usuario: Usuario;
+  token: string; // A API real retorna apenas o token
+  // O usuário será buscado em um endpoint separado após o login
 }

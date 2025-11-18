@@ -2,49 +2,19 @@ import api from './api';
 import { Reuniao } from '../types/models';
 
 class MeetingService {
-  async getMeetings(usuarioId: number): Promise<Reuniao[]> {
-    const { data } = await api.get<Reuniao[]>('/reunioes', {
-      params: { usuario_id: usuarioId }
-    });
-    return data;
-  }
 
-  async getMeetingById(id: number): Promise<Reuniao> {
-    const { data } = await api.get<Reuniao>(`/reunioes/${id}`);
-    return data;
-  }
-
-  async createMeeting(reuniao: Omit<Reuniao, 'id'>): Promise<Reuniao> {
-    const { data } = await api.post<Reuniao>('/reunioes', reuniao);
-    return data;
-  }
-
-  async updateMeeting(id: number, reuniao: Partial<Reuniao>): Promise<Reuniao> {
-    const { data } = await api.put<Reuniao>(`/reunioes/${id}`, reuniao);
-    return data;
-  }
-
-  async deleteMeeting(id: number): Promise<void> {
-    await api.delete(`/reunioes/${id}`);
-  }
-
-  async getMeetingsByDate(usuarioId: number, data: string): Promise<Reuniao[]> {
-    const { data: reunioes } = await api.get<Reuniao[]>('/reunioes', {
-      params: { usuario_id: usuarioId }
-    });
-
-    return reunioes.filter(r => r.data.startsWith(data));
-  }
-
-  async getUpcomingMeetings(usuarioId: number): Promise<Reuniao[]> {
-    const { data: reunioes } = await api.get<Reuniao[]>('/reunioes', {
-      params: { usuario_id: usuarioId }
-    });
-
-    const now = new Date();
-    return reunioes
-      .filter(r => new Date(r.data) >= now)
-      .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+  async getMeetingsByUserId(userId: number): Promise<Reuniao[]> {
+    try {
+      console.log(`[MeetingService] Buscando reuniões para o usuário ID: ${userId}`);
+      // Ajustado para usar query parameter, conforme a especificação do backend.
+      const { data } = await api.get<Reuniao[]>('/reunioes', { params: { usuarioId: userId } });
+      console.log(`[MeetingService] ${data.length} reuniões encontradas para o usuário.`);
+      return data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido ao buscar reuniões do usuário';
+      console.error('[MeetingService] Erro ao buscar reuniões do usuário:', errorMessage);
+      throw new Error(errorMessage);
+    }
   }
 }
 
