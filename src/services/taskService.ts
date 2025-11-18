@@ -2,8 +2,6 @@ import api from './api';
 import { Tarefa, CreateTarefaDTO, UpdateTarefaDTO, SpringPage } from '../types/models';
 
 
-type TarefaUpdatePayload = Partial<Omit<Tarefa, 'id' | 'usuarioId'>>; // For updating
-
 class TaskService {
   /**
    * Cria uma nova tarefa no backend.
@@ -70,7 +68,7 @@ class TaskService {
   /**
    * Atualiza uma tarefa existente.
    */
-  async updateTask(taskId: number, taskData: TarefaUpdatePayload): Promise<Tarefa> {
+  async updateTask(taskId: number, taskData: Partial<UpdateTarefaDTO>): Promise<Tarefa> {
     try {
       console.log(`[TaskService] Atualizando tarefa com ID: ${taskId}`);
       const { data } = await api.put<Tarefa>(`/tarefas/${taskId}`, taskData);
