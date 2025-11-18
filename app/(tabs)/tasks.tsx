@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   RefreshControl,
   SafeAreaView,
-  ScrollView,
+  SectionList,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
@@ -15,7 +16,7 @@ import { TaskCard } from '../../src/components/TaskCard';
 import { theme } from '../../src/styles/theme';
 import taskService from '../../src/services/taskService';
 import analyticsService from '../../src/services/analyticsService';
-import { Tarefa } from '../../src/types/models';
+import { Tarefa, UpdateTarefaDTO } from '../../src/types/models';
 import { Plus } from 'lucide-react-native';
 
 // Define os tipos de filtro baseados na prioridade
@@ -25,7 +26,10 @@ export default function TasksScreen() {
   const router = useRouter();
   const { usuario } = useAuth();
   const [allTasks, setAllTasks] = useState<Tarefa[]>([]);
-  const [filteredTasks, setFilteredTasks] = useState<Tarefa[]>([]);
+  // State to hold data structured for the SectionList
+  const [taskSections, setTaskSections] = useState<
+    { title: string; data: Tarefa[] }[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<PrioridadeFilter>('TODAS');
 
@@ -49,13 +53,9 @@ export default function TasksScreen() {
 
   useEffect(() => {
     if (!usuario) {
-      setFilteredTasks([]);
+      setTaskSections([]);
       return;
     }
-    // WORKAROUND: Filtro no cliente para previnir o erro 403.
-    // O ideal é que o backend retorne apenas as tarefas do usuário logado.
-    // A comparação é feita com '==' para evitar problemas de tipo (string vs number)
-    // que podem vir da API, garantindo que '5' == 5 seja verdadeiro.
     const myTasks = allTasks.filter(task => task.usuarioId == usuario.id);
 
     // Log de depuração para garantir que o filtro funciona como esperado
@@ -63,27 +63,56 @@ export default function TasksScreen() {
       console.log(`[TasksScreen] Filtrando ${allTasks.length} tarefas para o usuário ID ${usuario.id}. Encontradas: ${myTasks.length}.`);
     }
 
-    if (filter === 'TODAS') {
-      setFilteredTasks(myTasks);
-    } else {
-      const filtered = myTasks.filter((task) => task.prioridade === filter);
-      setFilteredTasks(filtered);
+    const tasksToDisplay =
+      filter === 'TODAS'
+        ? myTasks
+        : myTasks.filter((task) => task.prioridade === filter);
+
+    // Separa as tarefas em pendentes e concluídas
+    const pendingTasks = tasksToDisplay.filter((task) => !task.concluida);
+    const completedTasks = tasksToDisplay.filter((task) => task.concluida);
+
+    const sections = [];
+    if (pendingTasks.length > 0) {
+      sections.push({ title: 'Pendentes', data: pendingTasks });
     }
+    if (completedTasks.length > 0) {
+      sections.push({ title: 'Concluídas', data: completedTasks });
+    }
+
+    setTaskSections(sections);
   }, [filter, allTasks, usuario]);
 
   const handleCompleteTask = async (tarefa: Tarefa) => {
     if (!usuario) return;
 
+    // --- Atualização Otimista ---
+    // 1. Salva o estado original para reverter em caso de erro.
+    const originalTasks = [...allTasks];
+
+    // 2. Atualiza o estado local imediatamente para um feedback visual instantâneo.
+    const newTasks = allTasks.map((t) =>
+      t.id === tarefa.id ? { ...t, concluida: !t.concluida } : t
+    );
+    setAllTasks(newTasks);
+
     try {
-      // 1. Altera o status da tarefa para o inverso do atual (concluir/desconcluir)
-      await taskService.updateTask(tarefa.id, { concluida: !tarefa.concluida });
-
+      // 3. Sincroniza com o backend em segundo plano.
+      const taskToUpdate: UpdateTarefaDTO = {
+        usuarioId: tarefa.usuarioId,
+        titulo: tarefa.titulo,
+        descricao: tarefa.descricao,
+        prioridade: tarefa.prioridade,
+        estimativaMinutos: tarefa.estimativaMinutos,
+        concluida: !tarefa.concluida,
+      };
+      await taskService.updateTask(tarefa.id, taskToUpdate);
       // TODO: Enviar evento para o analytics
-
-      // 2. Recarrega as tarefas para atualizar a UI
-      await loadTasks();
     } catch (error) {
       console.error('Erro ao concluir a tarefa:', error);
+      // 4. Se a sincronização falhar, reverte a UI para o estado original.
+      setAllTasks(originalTasks);
+      Alert.alert('Erro', 'Não foi possível atualizar a tarefa. Tente novamente.');
     }
   };
 
@@ -94,6 +123,12 @@ export default function TasksScreen() {
       onComplete={() => handleCompleteTask(item)}
     />
   );
+
+  const renderSectionHeader = ({
+    section: { title },
+  }: {
+    section: { title: string };
+  }) => <Text style={styles.sectionHeader}>{title}</Text>;
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
@@ -119,13 +154,14 @@ export default function TasksScreen() {
       </View>
 
       {/* Filtro por Prioridade */}
-      <View>
-        <ScrollView
+      <View style={styles.filterWrapper}>
+        <FlatList
           horizontal
+          data={['TODAS', 'ALTA', 'MEDIA', 'BAIXA'] as const}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterContainer}
-        >
-          {(['TODAS', 'ALTA', 'MEDIA', 'BAIXA'] as const).map((prioridade) => (
+          keyExtractor={(item) => item}
+          renderItem={({ item: prioridade }) => (
             <TouchableOpacity
               key={prioridade}
               style={[
@@ -143,13 +179,14 @@ export default function TasksScreen() {
                 {prioridade.charAt(0) + prioridade.slice(1).toLowerCase()}
               </Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+          )}
+        />
       </View>
 
-      <FlatList
-        data={filteredTasks}
+      <SectionList
+        sections={taskSections}
         renderItem={renderTask}
+        renderSectionHeader={renderSectionHeader}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContent}
         refreshControl={
@@ -186,10 +223,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...theme.shadows.medium,
   },
+  filterWrapper: {
+    paddingBottom: theme.spacing.sm,
+  },
   filterContainer: {
     flexDirection: 'row',
     paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
     gap: theme.spacing.sm,
   },
   filterButton: {
@@ -213,6 +252,13 @@ const styles = StyleSheet.create({
   listContent: {
     padding: theme.spacing.lg,
     paddingTop: 0,
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: theme.colors.text,
+    paddingVertical: theme.spacing.md,
+    backgroundColor: theme.colors.background, // Garante que o texto não fique sobreposto
   },
   emptyContainer: {
     alignItems: 'center',
