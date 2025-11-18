@@ -9,7 +9,6 @@ yarn-error.log*
 node_modules/
 
 # Arquivos de ambiente
-# Mantenha .env.example no repositório, mas ignore os arquivos de ambiente locais
 .env
 .env.local
 .env.development.local
