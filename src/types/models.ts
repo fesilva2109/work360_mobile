@@ -24,7 +24,7 @@ export interface Reuniao {
   link?: string;
 }
 
-export type CreateReuniaoDTO = Omit<Reuniao, 'id' | 'usuarioId'>;
+export type CreateReuniaoDTO = Omit<Reuniao, 'id'>;
 
 export type UpdateReuniaoDTO = Partial<CreateReuniaoDTO>;
 

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
-import taskService from '../../services/taskService';
-import { useAuth } from '../../contexts/AuthContext';
-import { Prioridade } from '../../types/models';
+import taskService from '../../src/services/taskService';
+import { useAuth } from '../../src/contexts/AuthContext';
+import { Prioridade } from '../../src/types/models';
 
 type TaskStackNavigatorParams = {
   TaskForm: { taskId?: number };

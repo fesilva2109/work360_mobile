@@ -9,7 +9,7 @@ import {
   SafeAreaView,
   SectionList,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Reuniao } from '../../src/types/models';
 import meetingService from '../../src/services/meetingService';
 import { useAuth } from '../../src/contexts/AuthContext';
@@ -58,9 +58,11 @@ export default function MeetingsScreen() {
     }
   }, [usuario]);
 
-  useEffect(() => {
-    fetchMeetings();
-  }, [fetchMeetings]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchMeetings();
+    }, [fetchMeetings])
+  );
 
   const renderMeeting = ({ item }: { item: Reuniao }) => (
     <MeetingCard

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import { Tarefa } from '../../types/models';
-import taskService from '../../services/taskService';
-import { theme } from '../../styles/theme';
-import { Button } from '../../components/Button';
+import { Tarefa } from '../../src/types/models';
+import taskService from '../../src/services/taskService';
+import { theme } from '../../src/styles/theme';
+import { Button } from '../../src/components/Button';
 import { Tag, AlignLeft, Clock } from 'lucide-react-native';
 
 function DetailRow({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | null | undefined }) {

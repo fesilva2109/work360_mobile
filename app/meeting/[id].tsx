@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Alert, ScrollView, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import meetingService from '../../services/meetingService';
-import { Reuniao } from '../../types/models';
-import { theme } from '../../styles/theme';
-import { Card } from '../../components/Card';
-import { Button } from '../../components/Button';
+import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from 'expo-router';
+import meetingService from '../../src/services/meetingService';
+import { Reuniao } from '../../src/types/models';
+import { theme } from '../../src/styles/theme';
+import { Card } from '../../src/components/Card';
+import { Button } from '../../src/components/Button';
 import { Calendar, Link as LinkIcon, Trash2, Edit, Clock } from 'lucide-react-native';
 
 export default function MeetingDetailScreen() {
@@ -34,9 +34,11 @@ export default function MeetingDetailScreen() {
     }
   }, [meetingId]);
 
-  useEffect(() => {
-    fetchMeeting();
-  }, [fetchMeeting]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchMeeting();
+    }, [fetchMeeting])
+  );
 
   const handleDelete = () => {
     Alert.alert(
@@ -80,14 +82,15 @@ export default function MeetingDetailScreen() {
         <View style={styles.infoRow}>
           <Calendar size={20} color={theme.colors.primary} />
           <Text style={styles.infoText}>
-            {new Date(meeting.data).toLocaleDateString('pt-BR')}
+            {new Date(meeting.data.endsWith('Z') ? meeting.data : meeting.data + 'Z').toLocaleDateString('pt-BR')}
           </Text>
         </View>
 
         <View style={styles.infoRow}>
           <Clock size={20} color={theme.colors.primary} />
           <Text style={styles.infoText}>
-            {new Date(meeting.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            {/* Força a interpretação da data como UTC antes de formatar para local */}
+            {new Date(meeting.data.endsWith('Z') ? meeting.data : meeting.data + 'Z').toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </Text>
         </View>
 
@@ -102,7 +105,7 @@ export default function MeetingDetailScreen() {
       <View style={styles.buttonContainer}>
         <Button
           title="Editar"
-          onPress={() => router.push(`/meetings/edit/${meeting.id}`)}
+          onPress={() => router.push(`/meeting/edit/${meeting.id}`)}
           icon={<Edit size={18} color="white" />}
         />
         <Button

@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ScrollView, StyleSheet, Alert, ActivityIndicator, View, Text } from 'react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
-import { MeetingForm } from '../../../components/MeetingForm';
-import { UpdateReuniaoDTO, Reuniao } from '../../../types/models';
-import meetingService from '../../../services/meetingService';
-import { theme } from '../../../styles/theme';
+import { MeetingForm, MeetingFormData } from '../../../src/screens/MeetingForm';
+import { UpdateReuniaoDTO, Reuniao } from '../../../src/types/models';
+import meetingService from '../../../src/services/meetingService';
+import { theme } from '../../../src/styles/theme';
+import { useAuth } from '../../../src/contexts/AuthContext';
 
 export default function EditMeetingScreen() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function EditMeetingScreen() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { usuario } = useAuth();
 
   const fetchMeeting = useCallback(async () => {
     if (!meetingId) {
@@ -36,10 +38,27 @@ export default function EditMeetingScreen() {
     fetchMeeting();
   }, [fetchMeeting]);
 
-  const handleSave = async (data: UpdateReuniaoDTO) => {
+  const handleSave = async (formData: MeetingFormData) => {
+    if (!usuario) {
+      Alert.alert('Erro', 'Sessão expirada. Por favor, faça login novamente.');
+      return;
+    }
+
     setIsSaving(true);
     try {
-      await meetingService.updateMeeting(meetingId, data);
+      // Combina a data selecionada com a hora selecionada
+      const combinedDateTime = new Date(formData.data);
+      combinedDateTime.setUTCHours(formData.time.getUTCHours());
+      combinedDateTime.setUTCMinutes(formData.time.getUTCMinutes());
+      combinedDateTime.setUTCSeconds(0);
+      combinedDateTime.setUTCMilliseconds(0);
+
+      const meetingData: UpdateReuniaoDTO = {
+        ...formData,
+        data: combinedDateTime.toISOString(),
+        usuarioId: usuario.id, // Adiciona o ID do usuário
+      };
+      await meetingService.updateMeeting(meetingId, meetingData);
       Alert.alert('Sucesso', 'Reunião atualizada com sucesso!');
       // Navega duas telas para trás: da edição para a lista, pulando os detalhes.
       if (router.canGoBack()) {

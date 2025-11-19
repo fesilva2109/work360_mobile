@@ -11,13 +11,16 @@ interface MeetingCardProps {
 }
 
 export function MeetingCard({ reuniao, onPress }: MeetingCardProps) {
-  const formattedDate = new Date(reuniao.data).toLocaleDateString('pt-BR', {
+  // Garante que a data seja interpretada como UTC antes de formatar
+  const dateObject = new Date(reuniao.data.endsWith('Z') ? reuniao.data : reuniao.data + 'Z');
+
+  const formattedDate = dateObject.toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   });
 
-  const formattedTime = new Date(reuniao.data).toLocaleTimeString('pt-BR', {
+  const formattedTime = dateObject.toLocaleTimeString('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',
   });
