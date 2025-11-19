@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { theme } from '../../src/styles/theme';
+import React from 'react';
 
 export default function AnalyticsScreen() {
   return (

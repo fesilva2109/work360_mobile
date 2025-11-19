@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import taskService from '../../src/services/taskService';
-import { Tarefa } from '../../src/types/models';
+import taskService from '../../services/taskService';
+import { Tarefa } from '../../types/models';
 
 // Tipagem para a navegação
 type TaskStackNavigatorParams = {

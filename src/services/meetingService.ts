@@ -69,6 +69,22 @@ class MeetingService {
   }
 
   /**
+   * Atualiza uma reunião existente.
+   */
+  async updateMeeting(meetingId: number, meetingData: UpdateReuniaoDTO): Promise<Reuniao> {
+    try {
+      console.log(`[MeetingService] Atualizando reunião com ID: ${meetingId}`, meetingData);
+      const { data } = await api.put<Reuniao>(`/reunioes/${meetingId}`, meetingData);
+      console.log('[MeetingService] Reunião atualizada com sucesso:', data);
+      return data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Erro ao atualizar a reunião';
+      console.error(`[MeetingService] Erro ao atualizar reunião ${meetingId}:`, errorMessage);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
    * Deleta uma reunião.
    */
   async deleteMeeting(meetingId: number): Promise<void> {

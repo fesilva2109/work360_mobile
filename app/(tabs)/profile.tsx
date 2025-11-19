@@ -5,6 +5,7 @@ import { Card } from '../../src/components/Card';
 import { theme } from '../../src/styles/theme';
 import { useRouter } from 'expo-router';
 import { User, Mail, LogOut } from 'lucide-react-native';
+import React from 'react';
 
 export default function ProfileScreen() {
   const { usuario, signOut } = useAuth();

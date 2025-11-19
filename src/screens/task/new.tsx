@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
-import { useAuth } from '../../src/contexts/AuthContext';
-import taskService from '../../src/services/taskService';
-import { theme } from '../../src/styles/theme';
-import { Input } from '../../src/components/Input';
-import { Button } from '../../src/components/Button';
+import { useAuth } from '../../contexts/AuthContext';
+import taskService from '../../services/taskService';
+import { theme } from '../../styles/theme';
+import { Input } from '../../components/Input';
+import { Button } from '../../components/Button';
 
 // Futuramente, este componente pode ser um seletor mais robusto (Picker)
 function PrioritySelector({ selected, onSelect }: { selected: string, onSelect: (value: string) => void }) {

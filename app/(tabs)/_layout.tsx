@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Home, CheckSquare, Calendar, TrendingUp, User } from 'lucide-react-native';
 import { theme } from '../../src/styles/theme';
+import React from 'react';
 
 export default function TabLayout() {
   return (
