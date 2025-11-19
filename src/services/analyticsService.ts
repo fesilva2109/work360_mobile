@@ -2,10 +2,8 @@ import api from './api';
 import { AnalyticsMetrica, Usuario } from '../types/models';
 
 class AnalyticsService {
-  /**
-   * Busca as métricas de hoje para um usuário específico.
-   * @param userId - O ID do usuário.
-   */
+  //Busca as métricas de hoje para um usuário específico.
+  
   async getTodaysMetrics(userId: number): Promise<AnalyticsMetrica> {
     const defaultMetrics: AnalyticsMetrica = {
       id: 0,
@@ -19,7 +17,6 @@ class AnalyticsService {
 
     try {
       console.log(`[AnalyticsService] Buscando métricas de hoje para o usuário ID: ${userId}`);
-      // This now correctly calls /analytics/metricas/{id}/hoje
       const { data } = await api.get<AnalyticsMetrica>(`/analytics/metricas/${userId}/hoje`);
       console.log('[AnalyticsService] Métricas de hoje obtidas com sucesso.');
       return data;

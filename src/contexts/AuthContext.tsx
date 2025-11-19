@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { jwtDecode } from 'jwt-decode'; // Instale com: npm install jwt-decode
 import { Usuario, LoginRequest, RegisterRequest } from '../types/models';
 import authService from '../services/authService';
 import api from '../services/api';

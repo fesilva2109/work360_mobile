@@ -49,11 +49,10 @@ class AuthService {
   async getUserByEmail(email: string): Promise<Usuario> {
     try {
       console.log(`[AuthService] Buscando dados do usuário pelo email: ${email}`);
-      // Endpoint para buscar usuário por email. Assumimos que retorna um array.
       const { data } = await api.get<Usuario[]>('/usuarios', { params: { email } });
       if (data && data.length > 0) {
         console.log('[AuthService] Usuário encontrado via email.');
-        return data[0]; // Retorna o primeiro usuário encontrado.
+        return data[0]; 
       }
       throw new Error('Nenhum usuário encontrado com o email fornecido.');
     } catch (error: any) {

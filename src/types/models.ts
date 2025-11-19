@@ -24,6 +24,10 @@ export interface Reuniao {
   link?: string;
 }
 
+export type CreateReuniaoDTO = Omit<Reuniao, 'id' | 'usuarioId'>;
+
+export type UpdateReuniaoDTO = Partial<CreateReuniaoDTO>;
+
 export interface AnalyticsMetrica {
   id: number;
   usuarioId: number;
@@ -88,7 +92,6 @@ export interface LoginRequest {
 
 export type Prioridade = "BAIXA" | "MEDIA" | "ALTA";
 
-// Na criação, 'id' é gerado pelo banco e 'concluida' tem o valor padrão 'false'.
 export type CreateTarefaDTO = Omit<Tarefa, 'id' | 'concluida'>;
 export type UpdateTarefaDTO = Omit<Tarefa, 'id'>;
 

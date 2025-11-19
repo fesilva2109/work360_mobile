@@ -3,15 +3,10 @@ import { Tarefa, CreateTarefaDTO, UpdateTarefaDTO, SpringPage } from '../types/m
 
 
 class TaskService {
-  /**
-   * Cria uma nova tarefa no backend.
-   * @param userId - O ID do usuário que está criando a tarefa.
-   * @param formData - Os dados da tarefa vindos do formulário.
-   */
+  //Cria uma nova tarefa no backend.
+
   async createTask(taskData: CreateTarefaDTO): Promise<Tarefa> {
     try {
-      // Assemble the final payload that the backend expects, combining the user ID
-      // with the form data into a single flat object.
       const headers = {
         'Content-Type': 'application/json',
       };
@@ -21,26 +16,22 @@ class TaskService {
       console.log('[TaskService] Tarefa criada com sucesso:', data);
       return data;
     } catch (error: any) {
-      // Tratamento de erro robusto que lida com ambos os casos (erro de servidor e de rede)
       const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido ao criar tarefa';
       console.error('[TaskService] Erro ao criar tarefa:', errorMessage);
       throw new Error(errorMessage);
     }
   }
 
-  /**
-   * Busca todas as tarefas (geralmente para um admin).
-   */
+  //Busca todas as tarefas (geralmente para um admin).
+
   async getTasks(pageNumber = 0): Promise<Tarefa[]> {
     try {
       console.log(`[TaskService] Buscando tarefas para a página: ${pageNumber}`);
-      // O backend retorna um objeto de paginação do Spring (Page<T>).
-      // Precisamos especificar o tipo de retorno correto e extrair o array de 'content'.
       const { data } = await api.get<SpringPage<Tarefa>>('/tarefas', {
-        params: { page: pageNumber }, // Spring usa 'page' por padrão
+        params: { page: pageNumber }, 
       });
       console.log(`[TaskService] ${data.content.length} tarefas encontradas nesta página.`);
-      return data.content; // Retornamos apenas o array de tarefas
+      return data.content; 
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido ao buscar tarefas';
       console.error('[TaskService] Erro ao buscar tarefas:', errorMessage);
@@ -49,9 +40,8 @@ class TaskService {
   }
 
 
-  /**
-   * Busca uma tarefa específica pelo seu ID.
-   */
+  //Busca uma tarefa específica pelo seu ID.
+
   async getTaskById(taskId: number): Promise<Tarefa> {
     try {
       console.log(`[TaskService] Buscando tarefa com ID: ${taskId}`);
@@ -65,9 +55,8 @@ class TaskService {
     }
   }
 
-  /**
-   * Atualiza uma tarefa existente.
-   */
+  //Atualiza uma tarefa existente.
+
   async updateTask(taskId: number, taskData: Partial<UpdateTarefaDTO>): Promise<Tarefa> {
     try {
       console.log(`[TaskService] Atualizando tarefa com ID: ${taskId}`);
@@ -81,9 +70,8 @@ class TaskService {
     }
   }
 
-  /**
-   * Deleta uma tarefa.
-   */
+  //Deleta uma tarefa.
+
   async deleteTask(taskId: number): Promise<void> {
     try {
       console.log(`[TaskService] Deletando tarefa com ID: ${taskId}`);
