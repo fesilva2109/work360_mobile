@@ -29,7 +29,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Início',
+          tabBarLabel: 'Início',
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />

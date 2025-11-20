@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, SafeAreaView, TouchableOpacity } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, Stack, useRouter } from 'expo-router';
 import { Card } from '../components/Card';
 import { theme } from '../styles/theme';
 import taskService from '../services/taskService';
 import meetingService from '../services/meetingService';
 import analyticsService from '../services/analyticsService';
-import { CheckCircle, Calendar, TrendingUp, Clock } from 'lucide-react-native';
+import { CheckCircle, Calendar, TrendingUp, Clock, User } from 'lucide-react-native';
 
 export function DashboardScreen() {
   const { usuario } = useAuth();
@@ -18,6 +18,7 @@ export function DashboardScreen() {
     proximasReunioes: 0,
     minutosFoco: 0,
   });
+  const router = useRouter();
 
   const loadDashboardData = async () => {
     if (!usuario) return;
@@ -58,6 +59,23 @@ export function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: '',
+          headerShadowVisible: false, 
+          headerElevation: 0, 
+          headerStyle: { backgroundColor: theme.colors.background },
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => router.push('/profile')}
+              style={styles.profileIconContainer}
+            >
+              <User color={theme.colors.primary} size={28} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -188,5 +206,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.textSecondary,
     lineHeight: 20,
+  },
+  profileIconContainer: {
+    marginRight: theme.spacing.md,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
 });
