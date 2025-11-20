@@ -10,7 +10,6 @@ Este projeto foi desenvolvido como parte da Global Solution da FIAP, com foco em
 [![React Native](https://img.shields.io/badge/React%20Native-0.81.4-blue)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2054-black)](https://expo.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-3178c6)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 
 ### 👨‍💻 Integrantes
@@ -63,11 +62,68 @@ Assista ao vídeo completo do projeto em funcionamento:
     -   Visualização detalhada dos relatórios, com a opção de solicitar a análise da IA.
 
 ---
+## 🎨 Telas Principais
+
+### 🔐 Autenticação
+- **Login**: Permite a entrada do usuário com email e senha, com validações de formulário e tratamento de erros (usuário não encontrado, senha incorreta).
+- **Registro**: Criação de uma nova conta de usuário.
+
+### 📱 Dashboard (Início)
+- Exibe um resumo com cards de métricas do dia: tarefas pendentes, tarefas concluídas, próximas reuniões e minutos de foco.
+- Saudação personalizada ao usuário.
+- Permite a atualização dos dados com "puxar para atualizar" (`pull-to-refresh`).
+
+### ✅ Tarefas
+- Lista as tarefas do usuário, separadas por "Pendentes" e "Concluídas".
+- Permite filtrar as tarefas por prioridade (Alta, Média, Baixa).
+- Botão para criar novas tarefas.
+- Permite marcar tarefas como concluídas com uma atualização visual instantânea (otimista).
+
+### ⚡ Modo Foco
+- Um timer de concentração para registrar períodos de trabalho focado.
+- Ao final da sessão, exibe um resumo com métricas de sensores (BPM e ruído) e oferece a opção de gerar um relatório de produtividade.
+
+### 📅 Reuniões
+- Lista as reuniões do usuário, separadas por "Próximas" e "Passadas".
+- Permite a criação e edição de reuniões com um seletor de data e hora.
+
+### 📊 Insights (Produtividade)
+- Central de ações para gerar novos relatórios e visualizar o último insight gerado pela IA.
+- Exibe as principais conquistas do último relatório gerado.
+
+### 👤 Perfil
+- Exibe as informações do usuário logado (nome e email).
+- Botão para fazer logout de forma segura.
+
+---
 
 ## 🏗️ Arquitetura e Estrutura de Pastas
 
-O projeto segue uma arquitetura limpa e organizada, separando as responsabilidades para facilitar a manutenção e o desenvolvimento.
-```bash
+A arquitetura do aplicativo foi projetada para garantir a separação de responsabilidades, facilitando a manutenção e a escalabilidade, seguindo os princípios da Clean Architecture.
+
+```
+┌─────────────────────────────────────────────────┐
+│            CAMADA DE APRESENTAÇÃO               │
+│  (Telas, Componentes, Navegação)                │
+└───────────────┬─────────────────────────────────┘
+                │
+┌───────────────▼─────────────────────────────────┐
+│         CAMADA DE GERENCIAMENTO DE ESTADO       │
+│           (React Context API)                   │
+└───────────────┬─────────────────────────────────┘
+                │
+┌───────────────▼─────────────────────────────────┐
+│         CAMADA DE LÓGICA DE NEGÓCIOS            │
+│           (Serviços)                            │
+└───────────────┬─────────────────────────────────┘
+                │
+┌───────────────▼─────────────────────────────────┐
+│            CAMADA DE DADOS                      │
+│      (API, AsyncStorage)                        │
+└────────────────────────────────g─────────────────┘
+```
+
+``````bash
 
 work360_mobile/
 ├── app/
@@ -159,6 +215,31 @@ work360_mobile/
 4.  **`src/services/`**: Esta é a camada de acesso a dados. Cada arquivo (ex: `taskService.ts`, `reportService.ts`) é responsável por todas as chamadas de API relacionadas a uma entidade específica, usando o **Axios** para as requisições HTTP.
 
 5.  **`src/types/`**: Define todas as interfaces e tipos TypeScript do projeto (ex: `Tarefa`, `Reuniao`, `RelatorioGerado`), garantindo a segurança de tipos e a previsibilidade dos dados.
+
+---
+## 🔄 Fluxo de Autenticação
+
+O diagrama abaixo ilustra o processo de login do usuário na aplicação:
+
+```mermaid
+sequenceDiagram
+    participant Usuário
+    participant Tela de Login
+    participant AuthContext
+    participant AuthService
+    participant API Backend
+    participant AsyncStorage
+
+    Usuário->>Tela de Login: Insere email e senha
+    Tela de Login->>AuthContext: Chama signIn(credentials)
+    AuthContext->>AuthService: Chama login(credentials)
+    AuthService->>API Backend: POST /login com as credenciais
+    API Backend-->>AuthService: Retorna { token, usuario }
+    AuthService-->>AuthContext: Retorna dados de autenticação
+    AuthContext->>AsyncStorage: Salva token e dados do usuário
+    AuthContext-->>App: Atualiza estado para autenticado
+    App->>Dashboard: Redireciona para a tela principal
+```
 
 ---
 
