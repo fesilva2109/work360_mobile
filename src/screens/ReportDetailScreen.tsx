@@ -29,9 +29,9 @@ export function ReportDetailScreen() {
   const handleEnrichReport = async () => {
     setIsGeneratingAI(true);
     try {
-      // Chama o serviço para enriquecer o relatório com a IA
+      // Chama o serviço para o relatório com a IA
       const enrichedReport = await reportService.enriquecerRelatorioComIA(report.id);
-      setReport(enrichedReport); // Atualiza o estado local com os novos dados
+      setReport(enrichedReport); 
 
       Alert.alert(
         "Análise Concluída!",
@@ -74,14 +74,12 @@ export function ReportDetailScreen() {
         </Text>
       </View>
 
-      {/* Seção de "Achievements" */}
       <View style={styles.achievementsGrid}>
         <AchievementCard icon={<CheckCircle size={32} color={theme.colors.success} />} value={report.tarefasConcluidas} label="Tarefas Concluídas" />
         <AchievementCard icon={<Clock size={32} color={theme.colors.primary} />} value={report.minutosFocoTotal} label="Minutos de Foco" />
         <AchievementCard icon={<Calendar size={32} color={theme.colors.info} />} value={report.reunioesRealizadas} label="Reuniões" />
       </View>
 
-      {/* Seção Condicional da IA */}
       {report.insights ? (
         // Se já tem análise, mostra os resultados
         <View style={styles.iaResultCard}>

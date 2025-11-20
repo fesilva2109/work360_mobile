@@ -10,7 +10,7 @@ import {
   SectionList,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { TaskCard } from '../../src/components/TaskCard';
 import { theme } from '../../src/styles/theme';
@@ -19,14 +19,12 @@ import analyticsService from '../../src/services/analyticsService';
 import { Tarefa, UpdateTarefaDTO } from '../../src/types/models';
 import { Plus } from 'lucide-react-native';
 
-// Define os tipos de filtro baseados na prioridade
 type PrioridadeFilter = 'TODAS' | 'ALTA' | 'MEDIA' | 'BAIXA';
 
 export default function TasksScreen() {
   const router = useRouter();
   const { usuario } = useAuth();
   const [allTasks, setAllTasks] = useState<Tarefa[]>([]);
-  // State to hold data structured for the SectionList
   const [taskSections, setTaskSections] = useState<
     { title: string; data: Tarefa[] }[]
   >([]);
@@ -38,7 +36,6 @@ export default function TasksScreen() {
 
     setLoading(true);
     try {
-      // Alterado para buscar apenas as tarefas do usuário logado
       const data = await taskService.getTasksByUserId(usuario.id);
       setAllTasks(data);
       console.log(`[TasksScreen] Recebidas ${data.length} tarefas para o usuário ID ${usuario.id}.`);
@@ -49,9 +46,11 @@ export default function TasksScreen() {
     }
   }, [usuario]);
 
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+  useFocusEffect(
+    useCallback(() => {
+      loadTasks();
+    }, [loadTasks])
+  );
 
   useEffect(() => {
     if (!usuario) {
@@ -59,14 +58,12 @@ export default function TasksScreen() {
       return;
     }
     
-    // O filtro de usuário não é mais necessário aqui, pois a API já retorna os dados corretos.
-    // A filtragem agora é apenas pela prioridade selecionada.
     const tasksToDisplay =
       filter === 'TODAS'
         ? allTasks
         : allTasks.filter((task) => task.prioridade === filter);
 
-    // Separa as tarefas em pendentes e concluídas
+    // Separa as tarefas em seções de Pendentes e Concluídas para a lista.
     const pendingTasks = tasksToDisplay.filter((task) => !task.concluida).sort((a, b) => a.id - b.id);
     const completedTasks = tasksToDisplay.filter((task) => task.concluida);
 
@@ -81,21 +78,19 @@ export default function TasksScreen() {
     setTaskSections(sections);
   }, [filter, allTasks, usuario]);
 
+  //Marca uma tarefa como concluída ou pendente.
+
   const handleCompleteTask = async (tarefa: Tarefa) => {
     if (!usuario) return;
 
-    // --- Atualização Otimista ---
-    // 1. Salva o estado original para reverter em caso de erro.
     const originalTasks = [...allTasks];
 
-    // 2. Atualiza o estado local imediatamente para um feedback visual instantâneo.
     const newTasks = allTasks.map((t) =>
       t.id === tarefa.id ? { ...t, concluida: !t.concluida } : t
     );
     setAllTasks(newTasks);
 
     try {
-      // 3. Sincroniza com o backend em segundo plano.
       const taskToUpdate: UpdateTarefaDTO = {
         usuarioId: tarefa.usuarioId,
         titulo: tarefa.titulo,
@@ -106,8 +101,8 @@ export default function TasksScreen() {
       };
       await taskService.updateTask(tarefa.id, taskToUpdate);
 
-      // 🔥 AÇÃO: Envia o evento para o analytics APENAS se a tarefa foi marcada como concluída.
-      if (!tarefa.concluida) { // Se o estado anterior era "não concluída"
+      // Se a tarefa foi marcada como concluída, registra o evento.
+      if (!tarefa.concluida) {
         analyticsService.createEvento({
           usuarioId: usuario.id,
           tarefaId: tarefa.id,
@@ -116,7 +111,7 @@ export default function TasksScreen() {
       }
     } catch (error) {
       console.error('Erro ao concluir a tarefa:', error);
-      // 4. Se a sincronização falhar, reverte a UI para o estado original.
+      // Se a chamada ao backend falhar, reverte a mudança na interface.
       setAllTasks(originalTasks);
       Alert.alert('Erro', 'Não foi possível atualizar a tarefa. Tente novamente.');
     }
@@ -159,7 +154,6 @@ export default function TasksScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Filtro por Prioridade */}
       <View style={styles.filterWrapper}>
         <FlatList
           horizontal
@@ -258,13 +252,14 @@ const styles = StyleSheet.create({
   listContent: {
     padding: theme.spacing.lg,
     paddingTop: 0,
+    paddingBottom: 80,
   },
   sectionHeader: {
     fontSize: 18,
     fontWeight: '600',
     color: theme.colors.text,
     paddingVertical: theme.spacing.md,
-    backgroundColor: theme.colors.background, // Garante que o texto não fique sobreposto
+    backgroundColor: theme.colors.background, 
   },
   emptyContainer: {
     alignItems: 'center',

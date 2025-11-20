@@ -8,7 +8,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
@@ -16,10 +16,11 @@ import { theme } from '../styles/theme';
 import { User, Mail, Lock } from 'lucide-react-native';
 
 export function RegisterScreen() {
+  const params = useLocalSearchParams<{ email?: string }>();
   const router = useRouter();
-  const { signUp, loading } = useAuth();
+  const { signUp, isLoading } = useAuth(); 
   const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(params.email || '');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [errors, setErrors] = useState({
@@ -132,7 +133,7 @@ export function RegisterScreen() {
           <Button
             title="Criar conta"
             onPress={handleRegister}
-            loading={loading}
+            loading={isLoading}
             fullWidth
             style={styles.registerButton}
           />

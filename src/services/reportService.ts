@@ -3,16 +3,13 @@ import { RelatorioGerado } from '../types/report.types';
 
 interface GerarRelatorioRequest {
   usuarioId: number;
-  dataInicio: string; // Formato YYYY-MM-DD
-  dataFim: string; // Formato YYYY-MM-DD
+  dataInicio: string;
+  dataFim: string;
 }
 
 class ReportService {
-  /**
-   * Etapa 1: Inicia a geração de um relatório base no backend.
-   * Retorna o relatório parcial, contendo o ID necessário para a próxima etapa.
-   * @param params - Contém usuarioId, dataInicio e dataFim.
-   */
+  //Pede ao backend para criar um relatório base com as métricas de um período.
+
   async gerarRelatorioBase(
     params: GerarRelatorioRequest
   ): Promise<RelatorioGerado> {
@@ -28,10 +25,8 @@ class ReportService {
     return data;
   }
 
-  /**
-   * Etapa 2: Solicita o enriquecimento do relatório pela IA.
-   * @param relatorioId - O ID do relatório gerado na Etapa 1.
-   */
+  //Pede para a IA analisar um relatório que já foi criado.
+
   async enriquecerRelatorioComIA(
     relatorioId: number
   ): Promise<RelatorioGerado> {
@@ -41,13 +36,11 @@ class ReportService {
     return data;
   }
 
-  /**
-   * Busca todos os relatórios salvos para um usuário.
-   */
+  //Busca no backend todos os relatórios salvos de um usuário.
+
   async getUserReports(userId: number): Promise<RelatorioGerado[]> {
     try {
       console.log(`[ReportService] Buscando relatórios para o usuário ID: ${userId}`);
-      // CONFIRMADO: Swagger indica que o endpoint é /relatorios/{usuarioId}
       const { data } = await api.get<RelatorioGerado[]>(`/relatorios/${userId}`);
       console.log(`[ReportService] ${data.length} relatórios encontrados.`);
       return data;
@@ -58,9 +51,8 @@ class ReportService {
     }
   }
 
-  /**
-   * Deleta um relatório específico pelo seu ID.
-   */
+  //Deleta um relatório específico no backend.
+
   async deleteReport(reportId: number): Promise<void> {
     try {
       console.log(`[ReportService] Deletando relatório ID: ${reportId}`);

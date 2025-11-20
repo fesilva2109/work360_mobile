@@ -25,17 +25,14 @@ export function DashboardScreen() {
 
     setLoading(true);
     try {
+      // Busca os dados de tarefas, reuniões e métricas de foco em paralelo.
       const [tarefasResponse, reunioesResponse, metricasHoje] = await Promise.all([
-        // Passa o ID do usuário para buscar as tarefas específicas dele
         taskService.getTasksByUserId(usuario.id),
-        // Passa o ID do usuário para buscar as reuniões específicas dele
         meetingService.getMeetingsByUserId(usuario.id),
-        // Passa o ID do usuário para buscar as métricas do dia
         analyticsService.getTodaysMetrics(usuario.id),
       ]);
 
-      // CORREÇÃO: Ambas as contagens (pendentes e concluídas) são feitas em tempo real
-      // a partir da lista de tarefas para refletir o estado atual.
+      // Calcula as estatísticas com base nos dados recebidos.
       const tarefasPendentes = tarefasResponse.filter(t => !t.concluida).length;
       const tarefasConcluidas = tarefasResponse.filter(t => t.concluida).length;
 
@@ -52,11 +49,10 @@ export function DashboardScreen() {
     }
   };
 
-  // useFocusEffect é executado toda vez que a tela entra em foco.
   useFocusEffect(
     useCallback(() => {
       loadDashboardData();
-    }, [usuario]) // Recarrega se o usuário mudar (login/logout)
+    }, [usuario])
   );
 
   return (
@@ -65,8 +61,7 @@ export function DashboardScreen() {
         options={{
           headerShown: true,
           title: '',
-          headerShadowVisible: false, 
-          headerElevation: 0, 
+          headerShadowVisible: false,
           headerStyle: { backgroundColor: theme.colors.background },
           headerRight: () => (
             <TouchableOpacity
@@ -148,7 +143,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.xxl, // Adiciona espaço no final da lista
+    paddingBottom: theme.spacing.xxl, 
   },
   header: {
     marginBottom: theme.spacing.lg,

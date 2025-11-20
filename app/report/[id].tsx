@@ -6,7 +6,8 @@ import { RelatorioGerado } from '../../src/types/report.types';
 import { theme } from '../../src/styles/theme';
 import { CheckCircle, Clock, Calendar, BrainCircuit, Trophy, Sparkles, Trash2 } from 'lucide-react-native';
 
-// --- NOVO COMPONENTE DE BARRA DE PROGRESSO ---
+//Barra de progresso usada enquanto a IA está analisando o relatório.
+
 const IndeterminateProgressBar = () => {
   const progress = useRef(new Animated.Value(0)).current;
 
@@ -25,8 +26,7 @@ const IndeterminateProgressBar = () => {
   return <View style={styles.progressBarContainer}><Animated.View style={[styles.progressBar, { width }]} /></View>;
 };
 
-// Componente simples para barra de progresso
-// Componente para os "Achievements"
+//Um card para exibir uma métrica de conquista.
 const AchievementCard = ({ icon, value, label, style }: { icon: React.ReactNode; value: string | number; label: string; style?: object }) => (
   <View style={[styles.achievementCard, style]}>
     {icon}
@@ -37,7 +37,7 @@ const AchievementCard = ({ icon, value, label, style }: { icon: React.ReactNode;
 
 export default function ReportDetailScreen() {
   const router = useRouter();
-  const navigation = useNavigation(); // Para o goBack
+  const navigation = useNavigation();
   const [report, setReport] = useState<RelatorioGerado | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
@@ -45,7 +45,7 @@ export default function ReportDetailScreen() {
   const params = useLocalSearchParams();
 
   useEffect(() => {
-     // A tela agora recebe o relatório completo via parâmetros de navegação
+     // Carrega os dados do relatório passados pela tela anterior.
      if (params.report && typeof params.report === 'string') {
        setReport(JSON.parse(params.report));
      }
@@ -53,6 +53,7 @@ export default function ReportDetailScreen() {
    }, [params.report]);
 
   const handleDelete = () => {
+
     if (!report) return;
     Alert.alert("Confirmar Exclusão", "Tem certeza que deseja excluir este relatório?", [
       { text: "Cancelar", style: "cancel" },
@@ -72,9 +73,12 @@ export default function ReportDetailScreen() {
     ]);
   };
 
+  //Envia o relatório para análise da IA e atualiza a tela com os novos dados.
+
   const handleEnrichReport = async () => {
      if (!report) return;
      setIsGeneratingAI(true);
+
      try {
        const enrichedReport = await reportService.enriquecerRelatorioComIA(report.id);
        setReport(enrichedReport);
@@ -82,8 +86,7 @@ export default function ReportDetailScreen() {
        Alert.alert(
          "Análise Concluída!",
          "Seus insights de produtividade estão prontos. Vamos visualizá-los agora.",
-         // Ao confirmar, volta para a aba de produtividade que agora mostrará o insight
-         [{ text: "OK", onPress: () => router.push('/(tabs)/analytics') }]
+         [{ text: "OK", onPress: () => router.replace('/(tabs)/analytics') }]
        );
      } catch (error) {
        Alert.alert("Erro", "Não foi possível gerar a análise de IA no momento.");
@@ -107,7 +110,7 @@ export default function ReportDetailScreen() {
               <Trash2 size={24} color={theme.colors.error} />
             </TouchableOpacity>
           ),
-          headerBackTitleVisible: false,
+          headerBackTitle: 'Voltar',
           headerTintColor: theme.colors.primary,
         }}
       />
@@ -127,9 +130,8 @@ export default function ReportDetailScreen() {
         <AchievementCard icon={<Calendar size={32} color={theme.colors.info} />} value={report.reunioesRealizadas} label="Reuniões" />
       </View>
 
-      {/* Seção Condicional da IA */}
+      {/*Se o relatório já tem insights, mostra um aviso, se não, mostra o botão para gerar a análise com a IA.*/}
       {report.insights ? (
-        // Se já tem análise, mostra um aviso simples. A análise completa está na tela de insight.
         <View style={styles.iaResultCard}>
           <View style={styles.cardHeader}>
             <Sparkles size={24} color={theme.colors.primary} />
@@ -138,7 +140,6 @@ export default function ReportDetailScreen() {
           <Text style={styles.cardContent}>Você pode visualizar a análise completa na aba "Produtividade".</Text>
         </View>
       ) : (
-        // Se não tem análise, mostra o botão para gerar
         <View style={styles.iaPromptCard}>
           <BrainCircuit size={48} color={theme.colors.primary} />
           <Text style={styles.iaPromptTitle}>Desbloqueie seus Insights</Text>

@@ -17,7 +17,7 @@ class AuthService {
       return data;
     } catch (error: any) {
       console.error('[AuthService] Erro na chamada de login API:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || 'Erro ao fazer login');
+      throw error;
     }
   }
 

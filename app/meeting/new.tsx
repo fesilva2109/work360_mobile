@@ -31,7 +31,7 @@ export default function NewMeetingScreen() {
       const meetingData: CreateReuniaoDTO = {
         ...formData,
         data: combinedDateTime.toISOString(),
-        usuarioId: usuario.id, // Adiciona o ID do usuário
+        usuarioId: usuario.id,
       };
       await meetingService.createMeeting(meetingData);
       Alert.alert('Sucesso', 'Reunião criada com sucesso!');
@@ -45,7 +45,7 @@ export default function NewMeetingScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Stack.Screen options={{ title: 'Nova Reunião' }} />
+      <Stack.Screen options={{ title: 'Nova Reunião', headerBackTitle: 'Voltar' }} />
       <MeetingForm onSave={handleSave} isSaving={isSaving} />
     </ScrollView>
   );

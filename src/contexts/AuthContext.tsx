@@ -7,9 +7,9 @@ import api from '../services/api';
 interface AuthContextData {
   usuario: Usuario | null;
   token: string | null;
-  isLoading: boolean; // Renomeado de 'loading' para consistência
+  isLoading: boolean; 
   signIn(credentials: LoginRequest): Promise<void>;
-  signUp(credentials: any): Promise<void>; // Adicionada a função signUp
+  signUp(credentials: any): Promise<void>;
   signOut(): void;
 }
 
@@ -53,33 +53,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signIn = async (credentials: LoginRequest) => {
     console.log('[AuthContext] Iniciando processo de signIn...');
-    const response = await authService.login(credentials);
+    try {
+      const response = await authService.login(credentials);
+      const { usuario: user, token: authToken } = response;
 
-    const { usuario: user, token: authToken } = response;
+      setUsuario(user);
+      setToken(authToken);
 
-    setUsuario(user);
-    setToken(authToken);
-
-    // Salva os dados no AsyncStorage
-    await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-    await AsyncStorage.setItem(TOKEN_STORAGE_KEY, authToken);
-    console.log(`[AuthContext] Sessão salva para o usuário: ${user.email}`);
+      // Salva os dados no AsyncStorage
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      await AsyncStorage.setItem(TOKEN_STORAGE_KEY, authToken);
+      console.log(`[AuthContext] Sessão salva para o usuário: ${user.email}`);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        throw error; 
+      }
+      // Para outros erros, lança a mensagem vinda do backend.
+      if (error.response?.data?.erro) {
+        throw new Error(error.response.data.erro);
+      }
+      // Erro genérico.
+      throw new Error('Não foi possível conectar ao servidor.');
+    }
   };
 
   const signUp = async (credentials: any) => {
     console.log('[AuthContext] Iniciando processo de signUp...');
-    // Supondo que seu authService tenha um método register
-    // e que ele retorne o mesmo formato do login.
-    const response = await authService.register(credentials);
+    try {
+      const response = await authService.register(credentials);
 
-    const { usuario: user, token: authToken } = response;
+      const { usuario: user, token: authToken } = response;
 
-    setUsuario(user);
-    setToken(authToken);
+      setUsuario(user);
+      setToken(authToken);
 
-    await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-    await AsyncStorage.setItem(TOKEN_STORAGE_KEY, authToken);
-    console.log(`[AuthContext] Nova conta criada e sessão salva para: ${user.email}`);
+      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+      await AsyncStorage.setItem(TOKEN_STORAGE_KEY, authToken);
+      console.log(`[AuthContext] Nova conta criada e sessão salva para: ${user.email}`);
+    } catch (error: any) {
+      // Lança uma mensagem de erro para a tela de registro
+      const errorMessage = error.response?.data?.message || 'Não foi possível criar a conta.';
+      throw new Error(errorMessage);
+    }
   };
 
   const signOut = async () => {

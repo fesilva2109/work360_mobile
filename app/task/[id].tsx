@@ -61,7 +61,6 @@ export default function TaskDetailScreen() {
             try {
               await taskService.deleteTask(tarefa.id);
               Alert.alert("Sucesso", "Tarefa excluída.");
-              // Usa `replace` para não poder voltar para a tela da tarefa deletada
               router.replace('/(tabs)/tasks');
             } catch (error) {
               Alert.alert("Erro", "Não foi possível excluir a tarefa.");
@@ -161,7 +160,7 @@ const styles = StyleSheet.create({
   detailValue: {
     fontSize: 16,
     color: theme.colors.text,
-    marginLeft: theme.spacing.sm + 20, // Alinha com o texto do label
+    marginLeft: theme.spacing.sm + 20, 
     lineHeight: 22,
   },
   actions: { marginTop: 'auto', paddingTop: theme.spacing.lg },

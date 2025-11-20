@@ -53,7 +53,27 @@ export function LoginScreen() {
       await signIn({ email, senha });
       router.replace('/(tabs)');
     } catch (error: any) {
-      Alert.alert('Erro', error.message || 'Erro ao fazer login');
+      // Se o backend retornar 404, significa que o usuário não existe.
+      if (error.response?.status === 404) {
+        Alert.alert(
+          'Usuário não encontrado',
+          'Não encontramos uma conta com este email. Deseja criar uma nova conta?',
+          [
+            { text: 'Não', style: 'cancel' },
+            {
+              text: 'Sim, criar conta',
+              onPress: () => router.push({
+                pathname: '/register',
+                params: { email: email } 
+              }),
+            },
+          ]
+        );
+      } else {
+        // Para outros erros, mostra uma mensagem genérica.
+        const errorMessage = error.response?.data?.erro || 'Credenciais inválidas. Verifique seu email e senha.';
+        Alert.alert('Erro no Login', errorMessage);
+      }
     }
   };
 

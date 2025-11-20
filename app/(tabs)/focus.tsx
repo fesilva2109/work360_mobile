@@ -8,7 +8,8 @@ import { theme } from '../../src/styles/theme';
 import { Zap, Timer, BrainCircuit, HeartPulse, Ear, Check } from 'lucide-react-native';
 import { router } from 'expo-router';
 
-// Define os possíveis estados da tela
+//Define os modos de visualização da tela: inicial, durante o foco, e o resumo final.
+
 type ViewMode = 'initial' | 'active' | 'summary';
 
 interface SummaryData {
@@ -24,9 +25,10 @@ export default function FocusModeScreen() {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // Guarda a referência do timer para poder iniciá-lo e pará-lo.
+  const timerRef = useRef<number | null>(null);
 
-  // Função para formatar o tempo em MM:SS
+  //Formata o tempo total em segundos para o formato "MM:SS".
   const formatTime = (totalSeconds: number) => {
     if (isNaN(totalSeconds) || totalSeconds < 0) {
       return '00:00';
@@ -36,7 +38,7 @@ export default function FocusModeScreen() {
     return `${minutes}:${seconds}`;
   };
 
-  // Limpa o timer para evitar memory leaks
+  // Limpa o intervalo do timer para evitar execuções em segundo plano.
   const clearTimer = () => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -44,7 +46,7 @@ export default function FocusModeScreen() {
     }
   };
 
-  // Inicia o timer local
+  // Inicia um timer que atualiza o tempo decorrido a cada segundo.
   const startTimer = useCallback(() => {
     clearTimer();
     timerRef.current = setInterval(() => {
@@ -53,13 +55,14 @@ export default function FocusModeScreen() {
   }, []);
 
   useEffect(() => {
-    // Garante que o timer seja limpo quando o componente for desmontado
     return () => clearTimer();
   }, []);
 
   const [session, setSession] = useState<FocusSession | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('initial');
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
+
+  //Inicia uma nova sessão de foco, chamando o backend e mudando a tela para o modo ativo.
 
   const handleStartSession = async () => {
     if (!usuario) {
@@ -75,11 +78,13 @@ export default function FocusModeScreen() {
       setViewMode('active');
       startTimer();
 
-      // 🔥 AÇÃO: Envia o evento de início de foco
-      analyticsService.createEvento({
-        usuarioId: usuario.id,
-        tipoEvento: 'FOCO_INICIO', // CORRIGIDO
-      });
+      // Registra o evento de início de foco para as estatísticas.
+      if (usuario) {
+        analyticsService.createEvento({
+          usuarioId: usuario.id,
+          tipoEvento: 'FOCO_INICIO',
+        });
+      }
     } catch (error: any) {
       Alert.alert('Erro ao Iniciar', error.message);
     } finally {
@@ -87,11 +92,13 @@ export default function FocusModeScreen() {
     }
   };
 
+  //Para a sessão de foco atual, salva os dados e exibe a tela de resumo.
+
   const handleStopSession = async () => {
     if (!session) return;
 
     setIsLoading(true);
-    clearTimer(); // Para o timer imediatamente
+    clearTimer();
 
     try {
       const stoppedSession = await focusService.stopSession(session.id);
@@ -102,17 +109,18 @@ export default function FocusModeScreen() {
         startTime: stoppedSession.startTime,
         endTime: stoppedSession.endTime,
       });
-      // 🔥 AÇÃO: Envia o evento de fim de foco
-      analyticsService.createEvento({
-        usuarioId: usuario.id,
-        tipoEvento: 'FOCO_FIM', // CORRIGIDO
-      });
-      setSession(null); // Reseta o estado para a tela inicial
+      // Registra o evento de fim de foco.
+      if (usuario) {
+        analyticsService.createEvento({
+          usuarioId: usuario.id,
+          tipoEvento: 'FOCO_FIM',
+        });
+      }
+      setSession(null);
       setElapsedTime(0);
       setViewMode('summary');
     } catch (error: any) {
       Alert.alert('Erro ao Encerrar', error.message);
-      // Se der erro, reinicia o timer para o usuário não perder o tempo
       startTimer();
     } finally {
       setIsLoading(false);
@@ -123,6 +131,8 @@ export default function FocusModeScreen() {
     setSummaryData(null);
     setViewMode('initial');
   };
+
+  //Renderiza o conteúdo da tela com base no modo de visualização atual.
 
   const renderContent = () => {
     switch (viewMode) {
@@ -180,7 +190,7 @@ export default function FocusModeScreen() {
               <TouchableOpacity
                 style={[styles.button, styles.secondaryButton]}
                 onPress={() => router.push({
-                  pathname: '../reports',
+                  pathname: '/reports',
                   params: {
                     startTime: summaryData?.startTime,
                     endTime: summaryData?.endTime,
@@ -236,11 +246,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     paddingHorizontal: theme.spacing.lg,
     paddingVertical: theme.spacing.lg,
+    paddingBottom: 90,
   },
   header: {
     alignItems: 'center',
     marginBottom: theme.spacing.xxl,
-    marginTop: theme.spacing.lg, // Adiciona margem no topo para descer o título
+    marginTop: theme.spacing.lg, 
   },
   title: {
     fontSize: 28,
@@ -290,12 +301,12 @@ const styles = StyleSheet.create({
 
   },
   startButton: { backgroundColor: theme.colors.primary },
-  stopButton: { backgroundColor: theme.colors.primary }, // Deixa o botão de parar com a mesma cor dos outros
+  stopButton: { backgroundColor: theme.colors.primary }, 
   buttonText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.25)', // Sombra para legibilidade
+    textShadowColor: 'rgba(0, 0, 0, 0.25)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },

@@ -32,7 +32,7 @@ export default function MeetingsScreen() {
     try {
       setError(null);
       setLoading(true);
-      // Garante que estamos chamando o serviço que filtra por usuário no backend.
+      // Chamando o serviço que filtra por usuário no backend.
       const userMeetings = await meetingService.getMeetingsByUserId(usuario.id);
 
       const now = new Date();
@@ -68,7 +68,7 @@ export default function MeetingsScreen() {
   const renderMeeting = ({ item }: { item: Reuniao }) => (
     <MeetingCard
       reuniao={item}
-      onPress={() => router.push(`/meeting/${item.id}`)} // Navegará para detalhes da reunião
+      onPress={() => router.push(`/meeting/${item.id}`)}
     />
   );
 
@@ -99,7 +99,7 @@ export default function MeetingsScreen() {
         <Text style={styles.title}>Reuniões</Text>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => router.push('/meeting/new')} // Navegará para o formulário de criação
+          onPress={() => router.push('/meeting/new')} 
         >
           <Plus size={24} color="#FFFFFF" />
         </TouchableOpacity>
@@ -110,7 +110,7 @@ export default function MeetingsScreen() {
         renderItem={renderMeeting}
         renderSectionHeader={renderSectionHeader}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={[styles.listContent, { flexGrow: 1 }]}
+        contentContainerStyle={[styles.listContent, { flexGrow: 1}]}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={fetchMeetings} />
         }

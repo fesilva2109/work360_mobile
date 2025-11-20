@@ -1,9 +1,9 @@
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { useAuth } from '../src/contexts/AuthContext';
 import { Button } from '../src/components/Button';
 import { Card } from '../src/components/Card';
 import { theme } from '../src/styles/theme';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 import { User, Mail, LogOut } from 'lucide-react-native';
 import React from 'react';
 
@@ -27,6 +27,7 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Stack.Screen options={{ title: 'Meu Perfil', headerBackTitle: 'Voltar' }} />
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
           <User size={48} color={theme.colors.primary} />
@@ -54,6 +55,10 @@ export default function ProfileScreen() {
           </View>
         </View>
       </Card>
+
+      <TouchableOpacity onPress={() => router.push('/about')}>
+        <Text style={styles.aboutLink}>Sobre o App</Text>
+      </TouchableOpacity>
 
       <Button
         title="Sair"
@@ -129,5 +134,12 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     marginTop: theme.spacing.lg,
+  },
+  aboutLink: {
+    color: theme.colors.primary,
+    textAlign: 'center',
+    paddingVertical: theme.spacing.md,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

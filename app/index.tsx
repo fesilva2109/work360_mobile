@@ -6,10 +6,8 @@ import { theme } from '../src/styles/theme';
 import React from 'react';
 
 export default function Index() {
-  // Correção: usar 'usuario' em vez de 'isAuthenticated'
   const { usuario, isLoading } = useAuth();
 
-  // Enquanto o AuthContext verifica a sessão, mostramos um indicador de carregamento.
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -18,7 +16,7 @@ export default function Index() {
     );
   }
   
-  // Após o carregamento, se o objeto 'usuario' existir, o usuário está autenticado.
+  // Após o carregamento, se ousuario existir, o usuário está autenticado.
   if (usuario) {
     return <Redirect href="/(tabs)" />;
   }

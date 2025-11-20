@@ -4,8 +4,6 @@ import { AuthProvider, useAuth } from '../src/contexts/AuthContext';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { theme } from '../src/styles/theme';
 
-//Componente que gerencia a navegação principal
-
 function AppLayout() {
   const { usuario, isLoading } = useAuth();
   const segments = useSegments();
