@@ -1,11 +1,25 @@
-import { Tabs, useRouter } from 'expo-router';
-import { Home, CheckSquare, Calendar, TrendingUp, User, Zap } from 'lucide-react-native';
-import { theme } from '../../src/styles/theme';
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Tabs, Redirect, useRouter } from 'expo-router';
+import { useAuth } from '../../src/contexts/AuthContext';
+import { Home, CheckSquare, Calendar, TrendingUp, Zap } from 'lucide-react-native';
+import { theme } from '../../src/styles/theme';
+import { View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 
 export default function TabLayout() {
+  const { usuario, isLoading } = useAuth();
   const router = useRouter();
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (!usuario) {
+    return <Redirect href="/login" />;
+  }
 
   return (
     <Tabs
@@ -15,11 +29,11 @@ export default function TabLayout() {
         tabBarInactiveTintColor: theme.colors.textLight,
         tabBarStyle: {
           backgroundColor: theme.colors.background,
-          borderTopWidth: 1, 
+          borderTopWidth: 1,
           borderTopColor: theme.colors.border,
-          height: 75, 
-          paddingBottom: 5, 
-          paddingTop: 5, 
+          height: 75,
+          paddingBottom: 5,
+          paddingTop: 5,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -34,6 +48,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
+
       <Tabs.Screen
         name="tasks"
         options={{
@@ -41,6 +56,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <CheckSquare size={size} color={color} />,
         }}
       />
+
       <Tabs.Screen
         name="focus"
         options={{
@@ -57,6 +73,7 @@ export default function TabLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="meetings"
         options={{
@@ -64,6 +81,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
         }}
       />
+
       <Tabs.Screen
         name="analytics"
         options={{
@@ -76,6 +94,11 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   focusButtonContainer: {
     flex: 1,
     alignItems: 'center',
@@ -87,7 +110,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: -20, 
+    marginTop: -20,
     ...theme.shadows.large,
     borderWidth: 3,
     borderColor: theme.colors.background,

@@ -65,7 +65,7 @@ export function DashboardScreen() {
           headerStyle: { backgroundColor: theme.colors.background },
           headerRight: () => (
             <TouchableOpacity
-              onPress={() => router.push('/profile')}
+              onPress={() => router.push('../profile')}
               style={styles.profileIconContainer}
             >
               <User color={theme.colors.primary} size={28} />

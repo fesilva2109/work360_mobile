@@ -35,6 +35,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const userObject = JSON.parse(storedUser);
 
           setUsuario(userObject);
+          // Garante que o token seja aplicado na instância da API ao carregar a sessão
+          api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
           setToken(storedToken);
           console.log(`[AuthContext] Sessão restaurada para o usuário: ${userObject.email}`);
         } else {
@@ -59,6 +61,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       setUsuario(user);
       setToken(authToken);
+
+      // Define o token no header padrão da API para todas as requisições futuras
+      api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
 
       // Salva os dados no AsyncStorage
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
@@ -87,6 +92,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUsuario(user);
       setToken(authToken);
 
+      // Define o token no header padrão da API para todas as requisições futuras
+      api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+
       await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
       await AsyncStorage.setItem(TOKEN_STORAGE_KEY, authToken);
       console.log(`[AuthContext] Nova conta criada e sessão salva para: ${user.email}`);
@@ -101,6 +109,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('[AuthContext] Realizando logout...');
     setUsuario(null);
     setToken(null);
+
+    // Limpa o header de autorização da API
+    delete api.defaults.headers.common['Authorization'];
 
     // Remove os dados do AsyncStorage
     await AsyncStorage.removeItem(USER_STORAGE_KEY);
