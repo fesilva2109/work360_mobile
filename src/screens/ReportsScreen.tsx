@@ -1,12 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator, Platform, SafeAreaView, ScrollView } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator, Platform, SafeAreaView, ScrollView, Modal } from 'react-native';
+import { useFocusEffect, useRouter, useLocalSearchParams } from 'expo-router';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Calendar, FileText } from 'lucide-react-native';
 
 import { useAuth } from '../contexts/AuthContext';
 import reportService from '../services/reportService';
+import { Button } from '../components/Button';
 import { RelatorioGerado } from '../types/report.types';
 import { theme } from '../styles/theme';
 
@@ -17,18 +18,28 @@ type ReportStackNavigatorParams = {
 
 type ReportListNavigationProp = NativeStackNavigationProp<ReportStackNavigatorParams, 'ReportList'>;
 
-const formatDate = (date: Date) => date.toISOString().split('T')[0];
+// CORREÇÃO DE DATA: Função ajustada para formatar a data sem problemas de fuso horário.
+const formatDate = (date: Date) => {
+  // Cria a data em UTC para evitar que a conversão para string mude o dia.
+  return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+};
 
 export function ReportsScreen() {
   const { usuario } = useAuth();
   const router = useRouter();
+  const params = useLocalSearchParams<{ startTime?: string; endTime?: string }>();
 
   const [reports, setReports] = useState<RelatorioGerado[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  const [dataInicio, setDataInicio] = useState(new Date());
-  const [dataFim, setDataFim] = useState(new Date());
+  // Define as datas iniciais com base nos parâmetros da URL, se existirem.
+  const [dataInicio, setDataInicio] = useState(
+    params.startTime ? new Date(params.startTime) : new Date()
+  );
+  const [dataFim, setDataFim] = useState(
+    params.endTime ? new Date(params.endTime) : new Date()
+  );
   const [showPicker, setShowPicker] = useState<'inicio' | 'fim' | null>(null);
 
   const fetchReports = useCallback(async () => {
@@ -36,6 +47,8 @@ export function ReportsScreen() {
     setLoading(true);
     try {
       const data = await reportService.getUserReports(usuario.id);
+      // Ordena os relatórios pelo ID em ordem decrescente para mostrar os mais recentes primeiro.
+      data.sort((a, b) => b.id - a.id);
       setReports(data);
     } catch (error) {
       Alert.alert("Erro", "Não foi possível carregar os relatórios.");
@@ -97,8 +110,12 @@ export function ReportsScreen() {
         })
       }
     >
-      <Text style={styles.itemTitle}>Relatório de {formatDate(new Date(item.dataInicio))} a {formatDate(new Date(item.dataFim))}</Text>
-      <Text style={styles.itemDate}>Gerado em: {new Date(item.criadoEm).toLocaleString('pt-BR')}</Text>
+      {/* CORREÇÃO DE DATA: Adiciona timeZone: 'UTC' para exibir as datas corretamente. */}
+      <Text style={styles.itemTitle}>
+        Relatório de {new Date(item.dataInicio).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} a{' '}
+        {new Date(item.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+      </Text>
+      <Text style={styles.itemDate}>Gerado em: {new Date(item.criadoEm).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}</Text>
     </TouchableOpacity>
   );
 
@@ -121,7 +138,9 @@ export function ReportsScreen() {
               <Text style={styles.datePickerText}>Fim: {formatDate(dataFim)}</Text>
             </TouchableOpacity>
           </View>
-          {showPicker && (
+
+          {/* --- SELETOR DE DATA PARA ANDROID --- */}
+          {Platform.OS === 'android' && showPicker && (
             <DateTimePicker
               value={showPicker === 'inicio' ? dataInicio : dataFim}
               mode="date"
@@ -129,6 +148,35 @@ export function ReportsScreen() {
               onChange={onDateChange}
             />
           )}
+
+          {/* --- SELETOR DE DATA COM MODAL PARA IOS --- */}
+          {Platform.OS === 'ios' && (
+            <Modal
+              transparent={true}
+              animationType="slide"
+              visible={showPicker !== null}
+              onRequestClose={() => setShowPicker(null)}
+            >
+              <SafeAreaView style={styles.modalContainer}>
+                <View style={styles.modalContent}>
+                  <DateTimePicker
+                    value={showPicker === 'inicio' ? dataInicio : dataFim}
+                    mode="date"
+                    display="spinner"
+                    onChange={onDateChange}
+                    locale="pt-BR"
+                    themeVariant="light"
+                  />
+                  <Button
+                    title="Confirmar"
+                    onPress={() => setShowPicker(null)}
+                    fullWidth
+                  />
+                </View>
+              </SafeAreaView>
+            </Modal>
+          )}
+
           <TouchableOpacity
             style={[styles.generateButton, generating && styles.generateButtonDisabled]}
             onPress={handleGenerateReport}
@@ -230,4 +278,17 @@ const styles = StyleSheet.create({
   itemTitle: { fontSize: 16, fontWeight: '600', color: theme.colors.text },
   itemDate: { fontSize: 12, color: theme.colors.textSecondary, marginTop: 4 },
   emptyText: { textAlign: 'center', marginTop: 20, color: theme.colors.textSecondary, fontSize: 16 },
+  // Estilos do Modal (copiados de MeetingForm)
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: theme.colors.background,
+    borderTopLeftRadius: theme.borderRadius.lg,
+    borderTopRightRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
 });

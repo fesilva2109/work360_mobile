@@ -1,10 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, TouchableOpacity, Animated } from 'react-native';
+import { useLocalSearchParams, useNavigation, Stack, useRouter } from 'expo-router'; // Mantém useRouter
 import reportService from '../../src/services/reportService';
 import { RelatorioGerado } from '../../src/types/report.types';
 import { theme } from '../../src/styles/theme';
-import { CheckCircle, Clock, Calendar, BrainCircuit, Trophy, Sparkles } from 'lucide-react-native';
+import { CheckCircle, Clock, Calendar, BrainCircuit, Trophy, Sparkles, Trash2 } from 'lucide-react-native';
+
+// --- NOVO COMPONENTE DE BARRA DE PROGRESSO ---
+const IndeterminateProgressBar = () => {
+  const progress = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(progress, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: false,
+      })
+    ).start();
+  }, []);
+
+  const width = progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+
+  return <View style={styles.progressBarContainer}><Animated.View style={[styles.progressBar, { width }]} /></View>;
+};
 
 // Componente simples para barra de progresso
 // Componente para os "Achievements"
@@ -17,44 +36,21 @@ const AchievementCard = ({ icon, value, label, style }: { icon: React.ReactNode;
 );
 
 export default function ReportDetailScreen() {
-  const navigation = useNavigation();
+  const router = useRouter();
+  const navigation = useNavigation(); // Para o goBack
   const [report, setReport] = useState<RelatorioGerado | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-
-
  
-  // Como o backend não tem um getReportById, vamos receber o objeto via params.
-  // O expo-router permite isso.
   const params = useLocalSearchParams();
+
   useEffect(() => {
-    if (params.report) {
-      setReport(JSON.parse(params.report as string));
-    }
-    setLoading(false);
-  }, [params.report]);
-
-  const handleEnrichReport = async () => {
-    if (!report) return;
-    setIsGeneratingAI(true);
-    try {
-      // Chama o serviço para enriquecer o relatório com a IA
-      const enrichedReport = await reportService.enriquecerRelatorioComIA(report.id);
-      setReport(enrichedReport); // Atualiza o estado local com os novos dados
-
-      Alert.alert(
-        "Análise Concluída!",
-        "Seus insights de produtividade estão prontos. Vamos visualizá-los agora.",
-        [{ text: "OK", onPress: () => {
-          navigation.navigate('(tabs)', { screen: 'analytics' });
-        }}]      
-      );
-    } catch (error) {
-      Alert.alert("Erro", "Não foi possível gerar a análise de IA no momento.");
-    } finally {
-      setIsGeneratingAI(false);
-    }
-  };
+     // A tela agora recebe o relatório completo via parâmetros de navegação
+     if (params.report && typeof params.report === 'string') {
+       setReport(JSON.parse(params.report));
+     }
+     setLoading(false);
+   }, [params.report]);
 
   const handleDelete = () => {
     if (!report) return;
@@ -76,17 +72,52 @@ export default function ReportDetailScreen() {
     ]);
   };
 
+  const handleEnrichReport = async () => {
+     if (!report) return;
+     setIsGeneratingAI(true);
+     try {
+       const enrichedReport = await reportService.enriquecerRelatorioComIA(report.id);
+       setReport(enrichedReport);
+ 
+       Alert.alert(
+         "Análise Concluída!",
+         "Seus insights de produtividade estão prontos. Vamos visualizá-los agora.",
+         // Ao confirmar, volta para a aba de produtividade que agora mostrará o insight
+         [{ text: "OK", onPress: () => router.push('/(tabs)/analytics') }]
+       );
+     } catch (error) {
+       Alert.alert("Erro", "Não foi possível gerar a análise de IA no momento.");
+     } finally {
+       setIsGeneratingAI(false);
+     }
+   };
+
   if (loading || !report) {
     return <View style={styles.container}><ActivityIndicator size="large" color={theme.colors.primary} /></View>;
   }
 
   return (
     <ScrollView style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: 'Detalhes do Relatório',
+          headerRight: () => (
+            <TouchableOpacity onPress={handleDelete} style={{ marginRight: theme.spacing.md }}>
+              <Trash2 size={24} color={theme.colors.error} />
+            </TouchableOpacity>
+          ),
+          headerBackTitleVisible: false,
+          headerTintColor: theme.colors.primary,
+        }}
+      />
+
       <View style={styles.headerContainer}>
         <Trophy size={32} color={theme.colors.warning} />
         <Text style={styles.header}>Suas Conquistas</Text>
         <Text style={styles.subHeader}>
-          Período: {new Date(report.dataInicio).toLocaleDateString('pt-BR')} a {new Date(report.dataFim).toLocaleDateString('pt-BR')}
+          Período: {new Date(report.dataInicio).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} a{' '}
+          {new Date(report.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
         </Text>
       </View>
 
@@ -95,15 +126,16 @@ export default function ReportDetailScreen() {
         <AchievementCard icon={<Clock size={32} color={theme.colors.primary} />} value={report.minutosFocoTotal} label="Minutos de Foco" />
         <AchievementCard icon={<Calendar size={32} color={theme.colors.info} />} value={report.reunioesRealizadas} label="Reuniões" />
       </View>
+
       {/* Seção Condicional da IA */}
       {report.insights ? (
-        // Se já tem análise, mostra os resultados
+        // Se já tem análise, mostra um aviso simples. A análise completa está na tela de insight.
         <View style={styles.iaResultCard}>
           <View style={styles.cardHeader}>
             <Sparkles size={24} color={theme.colors.primary} />
             <Text style={styles.cardTitle}>Análise de IA Concluída</Text>
           </View>
-          <Text style={styles.cardContent}>Você já analisou este relatório. Para uma nova análise, gere um relatório para um período diferente.</Text>
+          <Text style={styles.cardContent}>Você pode visualizar a análise completa na aba "Produtividade".</Text>
         </View>
       ) : (
         // Se não tem análise, mostra o botão para gerar
@@ -113,7 +145,7 @@ export default function ReportDetailScreen() {
           <Text style={styles.iaPromptText}>Analise suas conquistas com nossa IA para receber um resumo, insights e recomendações personalizadas.</Text>
           <TouchableOpacity style={styles.iaButton} onPress={handleEnrichReport} disabled={isGeneratingAI}>
             {isGeneratingAI ? (
-              <ActivityIndicator color="#FFF" />
+              <IndeterminateProgressBar />
             ) : (
               <>
                 <Sparkles size={18} color="#FFF" />
@@ -154,8 +186,7 @@ const styles = StyleSheet.create({
   iaResultCard: { backgroundColor: theme.colors.surface, borderRadius: theme.borderRadius.lg, padding: 16, marginHorizontal: 16, marginBottom: 16, borderWidth: 1, borderColor: theme.colors.primary },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   cardTitle: { fontSize: 18, fontWeight: '600', color: theme.colors.text },
-  cardContent: { fontSize: 14, lineHeight: 20, color: theme.colors.textSecondary, marginBottom: 16 },
-  iaSectionTitle: { fontSize: 16, fontWeight: 'bold', color: theme.colors.text, marginTop: 8, marginBottom: 4 },
+  cardContent: { fontSize: 14, lineHeight: 20, color: theme.colors.textSecondary },
   iaPromptCard: { alignItems: 'center', padding: 24, marginHorizontal: 16, backgroundColor: '#E3F2FD', borderRadius: theme.borderRadius.xl },
   iaPromptTitle: { fontSize: 20, fontWeight: 'bold', color: theme.colors.primaryDark, marginTop: 16, marginBottom: 8 },
   iaPromptText: { fontSize: 14, color: theme.colors.textSecondary, textAlign: 'center', marginBottom: 24 },
@@ -166,4 +197,15 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.full, alignItems: 'center', gap: 8, ...theme.shadows.large
   },
   iaButtonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  progressBarContainer: {
+    width: '80%',
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#FFF',
+  },
 });

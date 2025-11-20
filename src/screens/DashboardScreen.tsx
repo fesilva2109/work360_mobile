@@ -34,12 +34,14 @@ export function DashboardScreen() {
         analyticsService.getTodaysMetrics(usuario.id),
       ]);
 
-      // A contagem de tarefas pendentes é feita em tempo real a partir da lista de tarefas.
+      // CORREÇÃO: Ambas as contagens (pendentes e concluídas) são feitas em tempo real
+      // a partir da lista de tarefas para refletir o estado atual.
       const tarefasPendentes = tarefasResponse.filter(t => !t.concluida).length;
+      const tarefasConcluidas = tarefasResponse.filter(t => t.concluida).length;
 
       setStats({
         tarefasPendentes: tarefasPendentes,
-        tarefasConcluidas: metricasHoje?.tarefasConcluidasNoDia || 0,
+        tarefasConcluidas: tarefasConcluidas,
         proximasReunioes: reunioesResponse.length,
         minutosFoco: metricasHoje?.minutosFoco || 0,
       });
@@ -77,7 +79,7 @@ export function DashboardScreen() {
         }}
       />
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { flexGrow: 1 }]}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={loadDashboardData} />
         }
