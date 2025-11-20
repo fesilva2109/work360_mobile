@@ -123,7 +123,9 @@ A arquitetura do aplicativo foi projetada para garantir a separação de respons
 └────────────────────────────────g─────────────────┘
 ```
 
-``````bash
+Desta forma, sendo refletido na arquitetura de pastas e arquivos.
+
+```bash
 
 work360_mobile/
 ├── app/
