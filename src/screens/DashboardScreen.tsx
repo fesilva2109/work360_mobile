@@ -33,14 +33,12 @@ export function DashboardScreen() {
         analyticsService.getTodaysMetrics(usuario.id),
       ]);
 
-      // --- CORREÇÃO DA LÓGICA ---
-      // Agora, calculamos as estatísticas a partir da lista de tarefas em tempo real.
+      // A contagem de tarefas pendentes é feita em tempo real a partir da lista de tarefas.
       const tarefasPendentes = tarefasResponse.filter(t => !t.concluida).length;
-      const tarefasConcluidasHoje = tarefasResponse.filter(t => t.concluida).length; // Simplificado para contar todas as concluídas.
 
       setStats({
         tarefasPendentes: tarefasPendentes,
-        tarefasConcluidas: tarefasConcluidasHoje,
+        tarefasConcluidas: metricasHoje?.tarefasConcluidasNoDia || 0,
         proximasReunioes: reunioesResponse.length,
         minutosFoco: metricasHoje?.minutosFoco || 0,
       });
