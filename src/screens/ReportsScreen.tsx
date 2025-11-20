@@ -18,7 +18,6 @@ type ReportStackNavigatorParams = {
 
 type ReportListNavigationProp = NativeStackNavigationProp<ReportStackNavigatorParams, 'ReportList'>;
 
-// CORREÇÃO DE DATA: Função ajustada para formatar a data sem problemas de fuso horário.
 const formatDate = (date: Date) => {
   // Cria a data em UTC para evitar que a conversão para string mude o dia.
   return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
@@ -33,7 +32,6 @@ export function ReportsScreen() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
-  // Define as datas iniciais com base nos parâmetros da URL, se existirem.
   const [dataInicio, setDataInicio] = useState(
     params.startTime ? new Date(params.startTime) : new Date()
   );
@@ -79,7 +77,7 @@ export function ReportsScreen() {
       // Se não houver, usa uma mensagem padrão.
       let errorMessage = error.response?.data?.message || "Não foi possível gerar o relatório.";
 
-      // Personaliza a mensagem para o erro 400 (Bad Request)
+      // Personaliza a mensagem para o erro 400 
       if (error.response?.status === 400) {
         errorMessage = "Não há dados de produtividade suficientes no período selecionado para gerar um relatório. Tente um intervalo de datas diferente.";
       }
@@ -110,7 +108,6 @@ export function ReportsScreen() {
         })
       }
     >
-      {/* CORREÇÃO DE DATA: Adiciona timeZone: 'UTC' para exibir as datas corretamente. */}
       <Text style={styles.itemTitle}>
         Relatório de {new Date(item.dataInicio).toLocaleDateString('pt-BR', { timeZone: 'UTC' })} a{' '}
         {new Date(item.dataFim).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
@@ -139,7 +136,6 @@ export function ReportsScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* --- SELETOR DE DATA PARA ANDROID --- */}
           {Platform.OS === 'android' && showPicker && (
             <DateTimePicker
               value={showPicker === 'inicio' ? dataInicio : dataFim}
@@ -149,7 +145,6 @@ export function ReportsScreen() {
             />
           )}
 
-          {/* --- SELETOR DE DATA COM MODAL PARA IOS --- */}
           {Platform.OS === 'ios' && (
             <Modal
               transparent={true}
@@ -200,7 +195,7 @@ export function ReportsScreen() {
               renderItem={renderItem}
               keyExtractor={(item) => item.id.toString()}
               ListEmptyComponent={<Text style={styles.emptyText}>Nenhum relatório salvo.</Text>}
-              scrollEnabled={false} // Desativa o scroll da FlatList para usar o da ScrollView principal
+              scrollEnabled={false} 
             />
           )}
         </View>
@@ -214,7 +209,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: {
     padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.xxl, // Espaço extra no final
+    paddingBottom: theme.spacing.xxl, 
   },
   header: { paddingBottom: theme.spacing.md },
   title: { fontSize: 28, fontWeight: '700', color: theme.colors.text },
@@ -278,7 +273,6 @@ const styles = StyleSheet.create({
   itemTitle: { fontSize: 16, fontWeight: '600', color: theme.colors.text },
   itemDate: { fontSize: 12, color: theme.colors.textSecondary, marginTop: 4 },
   emptyText: { textAlign: 'center', marginTop: 20, color: theme.colors.textSecondary, fontSize: 16 },
-  // Estilos do Modal (copiados de MeetingForm)
   modalContainer: {
     flex: 1,
     justifyContent: 'flex-end',

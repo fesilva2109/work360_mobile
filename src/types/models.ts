@@ -2,7 +2,6 @@ export interface Usuario {
   id: number;
   nome: string;
   email: string;
-  // senha não é armazenada no frontend, apenas enviada na criação/login
 }
 
 export interface Tarefa {
@@ -20,7 +19,7 @@ export interface Reuniao {
   usuarioId: number;
   titulo: string;
   descricao?: string;
-  data: string; // ISO Datetime
+  data: string; 
   link?: string;
 }
 
@@ -31,7 +30,7 @@ export type UpdateReuniaoDTO = Partial<CreateReuniaoDTO>;
 export interface AnalyticsMetrica {
   id: number;
   usuarioId: number;
-  data: string; // YYYY-MM-DD
+  data: string; 
   minutosFoco: number;
   minutosReuniao: number;
   tarefasConcluidasNoDia: number;
@@ -79,9 +78,9 @@ export interface RelatorioGerado {
   riscoBurnout: number;
   tendenciaProdutividade: string;
   tendenciaFoco: string;
-  insights: string[]; // Espera-se um array de strings
-  recomendacaoIA: RecomendacaoIA; // Objeto aninhado
-  resumoGeral: ResumoIA; // Objeto aninhado
+  insights: string[];
+  recomendacaoIA: RecomendacaoIA;
+  resumoGeral: ResumoIA; 
   criadoEm: string;
 }
 

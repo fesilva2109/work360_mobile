@@ -22,11 +22,8 @@ class TaskService {
     }
   }
 
-  /**
-   * Busca as tarefas de um usuário específico de forma paginada.
-   * @param usuarioId O ID do usuário para o qual buscar as tarefas.
-   * @param pageNumber O número da página a ser buscada.
-   */
+  //Busca as tarefas de um usuário específico de forma paginada.
+
   async getTasksByUserId(usuarioId: number, pageNumber = 0): Promise<Tarefa[]> {
     try {
       console.log(`[TaskService] Buscando tarefas para o usuário ${usuarioId}, página: ${pageNumber}`);

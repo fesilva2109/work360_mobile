@@ -7,7 +7,6 @@ import { theme } from '../../src/styles/theme';
 import { Input } from '../../src/components/Input';
 import { Button } from '../../src/components/Button';
 
-// Futuramente, este componente pode ser um seletor mais robusto (Picker)
 function PrioritySelector({ selected, onSelect }: { selected: string, onSelect: (value: string) => void }) {
   const priorities = ['BAIXA', 'MEDIA', 'ALTA'];
   return (
@@ -46,7 +45,6 @@ export default function NewTaskScreen() {
 
     setLoading(true);
     try {
-      // Convertendo horas (ex: 1.5) para minutos (90)
       const estimativaEmMinutos = estimativa ? Math.round(parseFloat(estimativa) * 60) : 0;
 
       await taskService.createTask({
@@ -54,12 +52,10 @@ export default function NewTaskScreen() {
         titulo: titulo.trim(),
         descricao: descricao.trim() || undefined,
         prioridade: prioridade as 'ALTA' | 'MEDIA' | 'BAIXA',
-        // A API espera 'estimativaMinutos' conforme a especificação
         estimativaMinutos: estimativaEmMinutos,
       });
 
       Alert.alert('Sucesso!', 'Sua nova tarefa foi criada.');
-      // `replace` é usado para que o usuário não volte para o formulário ao pressionar "voltar"
       router.replace('/(tabs)/tasks');
     } catch (error) {
       console.error(error);

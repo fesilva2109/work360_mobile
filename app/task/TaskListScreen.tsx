@@ -31,7 +31,7 @@ export default function TaskListScreen() {
     }
   };
 
-  // useFocusEffect recarrega os dados toda vez que a tela recebe foco
+  // Recarrega os dados toda vez que a tela recebe foco
   useFocusEffect(
     useCallback(() => {
       fetchTasks();
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
     color: 'white',
-    backgroundColor: '#6c757d', // Cor genérica, pode ser customizada
+    backgroundColor: '#6c757d', 
   },
   emptyText: { textAlign: 'center', marginTop: 50, fontSize: 16, color: '#666' },
 });

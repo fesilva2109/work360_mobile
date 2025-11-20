@@ -2,7 +2,7 @@ import api from './api';
 import { FocusSession } from '../types/focus.types';
 
 class FocusService {
-  //inicia uma nova sessão de foco para um usuário.
+  //Inicia uma nova sessão de foco para um usuário no backend.
 
   async startSession(usuarioId: number): Promise<FocusSession> {
     try {
@@ -17,7 +17,7 @@ class FocusService {
     }
   }
 
-  //Para uma sessão de foco existente.
+  //Encerra uma sessão de foco que já foi iniciada.
 
   async stopSession(sessionId: number): Promise<FocusSession> {
     try {

@@ -2,9 +2,8 @@ import api from './api';
 import { Reuniao, CreateReuniaoDTO, UpdateReuniaoDTO, SpringPage } from '../types/models';
 
 class MeetingService {
-  /**
-   * Cria uma nova reunião.
-   */
+  //Cria uma nova reunião.
+
   async createMeeting(meetingData: CreateReuniaoDTO): Promise<Reuniao> {
     try {
       console.log('[MeetingService] Criando nova reunião...', meetingData);
@@ -18,9 +17,8 @@ class MeetingService {
     }
   }
 
-  /**
-   * Busca todas as reuniões de forma paginada.
-   */
+  // Busca todas as reuniões de forma paginada.
+
   async getMeetings(pageNumber = 0): Promise<Reuniao[]> {
     try {
       console.log(`[MeetingService] Buscando reuniões para a página: ${pageNumber}`);
@@ -36,9 +34,8 @@ class MeetingService {
     }
   }
 
-  /**
-   * Busca uma reunião específica pelo seu ID.
-   */
+  //Busca uma reunião específica pelo seu ID.
+
   async getMeetingById(meetingId: number): Promise<Reuniao> {
     try {
       console.log(`[MeetingService] Buscando reunião com ID: ${meetingId}`);
@@ -52,9 +49,8 @@ class MeetingService {
     }
   }
 
-  /**
-   * Busca todas as reuniões associadas a um usuário específico.
-   */
+  //Busca todas as reuniões associadas a um usuário.
+
   async getMeetingsByUserId(userId: number, pageNumber = 0): Promise<Reuniao[]> {
     try {
       console.log(`[MeetingService] Buscando reuniões para o usuário ID: ${userId}`);
@@ -62,7 +58,6 @@ class MeetingService {
         params: { usuarioId: userId, page: pageNumber } 
       });
       console.log(`[MeetingService] ${data.content.length} reuniões encontradas para o usuário.`);
-      // Retorna apenas o array de reuniões, que é o que a tela espera.
       return data.content;
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido ao buscar reuniões do usuário';
@@ -71,9 +66,8 @@ class MeetingService {
     }
   }
 
-  /**
-   * Atualiza uma reunião existente.
-   */
+  //Atualiza uma reunião existente.
+
   async updateMeeting(meetingId: number, meetingData: UpdateReuniaoDTO): Promise<Reuniao> {
     try {
       console.log(`[MeetingService] Atualizando reunião com ID: ${meetingId}`, meetingData);
@@ -87,9 +81,8 @@ class MeetingService {
     }
   }
 
-  /**
-   * Deleta uma reunião.
-   */
+  //Deleta uma reunião.
+
   async deleteMeeting(meetingId: number): Promise<void> {
     try {
       console.log(`[MeetingService] Deletando reunião com ID: ${meetingId}`);

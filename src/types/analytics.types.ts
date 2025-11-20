@@ -1,17 +1,20 @@
+//Define os tipos de eventos que podem ser registrados para análise de produtividade.
+
 export type TipoEvento =
-  | 'FOCO_INICIO'      // Corrigido de START_FOCUS
-  | 'FOCO_FIM'         // Corrigido de END_FOCUS
-  | 'TAREFA_CONCLUIDA' // Corrigido de TASK_COMPLETE
-  | 'REUNIAO_INICIO'   // Corrigido de REUNIAO_INICIADA
+  | 'FOCO_INICIO'
+  | 'FOCO_FIM'
+  | 'TAREFA_CONCLUIDA'
+  | 'REUNIAO_INICIO'
   | 'REUNIAO_FIM';
 
 export interface AnalyticsEvento {
-  id?: number; // Opcional na criação
+  id?: number;
   usuarioId: number;
   tarefaId?: number;
   reuniaoId?: number;
   tipoEvento: TipoEvento;
-  timestamp?: string; // Opcional na criação
+  timestamp?: string;
 }
 
+// DTO para criar um novo evento de analytics. 
 export type CreateEventoDTO = Omit<AnalyticsEvento, 'id' | 'timestamp'>;

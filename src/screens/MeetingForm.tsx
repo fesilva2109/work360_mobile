@@ -23,13 +23,11 @@ interface MeetingFormProps {
 }
 
 export const MeetingForm: React.FC<MeetingFormProps> = ({ initialData, onSave, isSaving }) => {
-  // Usando um único estado para o formulário
   const [formData, setFormData] = useState<MeetingFormData>({
     titulo: initialData?.titulo || '',
     descricao: initialData?.descricao || '',
     link: initialData?.link || '',
     // Garante que a data vinda do backend seja tratada como UTC.
-    // Adicionar 'Z' ao final da string de data força a interpretação em UTC.
     data: initialData ? new Date(initialData.data.endsWith('Z') ? initialData.data : initialData.data + 'Z') : new Date(),
     time: initialData ? new Date(initialData.data.endsWith('Z') ? initialData.data : initialData.data + 'Z') : new Date(),
   });
@@ -52,10 +50,9 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ initialData, onSave, i
 
     if (event.type === 'set' && selectedTime) {
       const newTime = new Date(selectedTime);
-      // Arredonda os minutos para o múltiplo de 5 mais próximo.
       const minutes = newTime.getMinutes();
       const roundedMinutes = Math.round(minutes / 5) * 5;
-      newTime.setMinutes(roundedMinutes, 0, 0); // Zera segundos e milissegundos
+      newTime.setMinutes(roundedMinutes, 0, 0);
 
       setFormData(prev => ({ ...prev, time: newTime }));
     }
@@ -136,7 +133,6 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ initialData, onSave, i
         </Text>
       </TouchableOpacity>
 
-      {/* --- Seletor de Hora --- */}
       {Platform.OS === 'android' && showTimePicker && (
         <DateTimePicker
           value={formData.time}
@@ -161,7 +157,7 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ initialData, onSave, i
                 display="spinner"
                 onChange={handleTimeChange}
                 locale="pt-BR"
-                minuteInterval={5} // Define o intervalo de minutos para iOS
+                minuteInterval={5} 
                 themeVariant="light"
               />
               <Button title="Confirmar" onPress={() => setShowTimePicker(false)} />

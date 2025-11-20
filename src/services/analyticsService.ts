@@ -3,9 +3,8 @@ import { AnalyticsMetrica } from '../types/models';
 import { CreateEventoDTO } from '../types/analytics.types';
 
 class AnalyticsService {
-  /**
-   * Busca as métricas simples do dia para o Dashboard.
-   */
+  //Busca as métricas simples do dia para o Dashboard.
+
   async getTodaysMetrics(userId: number): Promise<AnalyticsMetrica> {
     try {
       console.log(`[AnalyticsService] Buscando métricas de hoje para o usuário ID: ${userId}`);
@@ -14,7 +13,7 @@ class AnalyticsService {
       return data;
     } catch (error: any) {
       console.warn(`[AnalyticsService] Falha ao buscar métricas de hoje (URL: ${error.config?.url}). Retornando valores padrão.`, error.message);
-      // Retorna um objeto padrão para não quebrar o dashboard em caso de erro.
+
       return {
         minutosFoco: 0,
         tarefasConcluidasNoDia: 0,
@@ -22,17 +21,14 @@ class AnalyticsService {
     }
   }
 
-  /**
-   * Registra um evento de produtividade no backend.
-   * Isso aciona a geração/atualização das métricas do dia.
-   */
+  //Registra um evento de produtividade no backend.
+
   async createEvento(eventoData: CreateEventoDTO): Promise<void> {
     try {
       console.log(`[AnalyticsService] Registrando evento: ${eventoData.tipoEvento}`);
       await api.post('/analytics/eventos', eventoData);
       console.log('[AnalyticsService] Evento registrado com sucesso.');
     } catch (error: any) {
-      // Silencia o erro na UI, mas loga no console, pois é uma operação de fundo.
       console.error('[AnalyticsService] Falha ao registrar evento:', error.message);
     }
   }

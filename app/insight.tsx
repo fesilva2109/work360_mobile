@@ -30,7 +30,7 @@ export default function InsightScreen() {
   const report: RelatorioGerado | null = params.report ? JSON.parse(params.report as string) : null;
 
   if (!report || !report.insights) {
-    return ( // Tela de fallback caso não haja dados
+    return ( 
       <View style={styles.container}>
         <Text>Nenhuma análise de IA encontrada para este relatório.</Text>
       </View>
@@ -40,7 +40,7 @@ export default function InsightScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen
-        options={{ headerShown: false }} // Remove o cabeçalho padrão
+        options={{ headerShown: false }} 
       />
       <ScrollView style={styles.container}>
         <LinearGradient
@@ -95,9 +95,9 @@ const styles = StyleSheet.create({
   },
   headerGradient: {
     padding: theme.spacing.xl,
-    paddingTop: theme.spacing.xl, // Aumenta o espaçamento no topo
+    paddingTop: theme.spacing.xl, 
     alignItems: 'center',
-    position: 'relative', // Necessário para o posicionamento absoluto do botão
+    position: 'relative', 
   },
   backButton: {
     position: 'absolute',

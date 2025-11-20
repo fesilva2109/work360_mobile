@@ -53,7 +53,7 @@ export default function MeetingDetailScreen() {
             try {
               await meetingService.deleteMeeting(meetingId);
               Alert.alert('Sucesso', 'Reunião excluída.');
-              router.back(); // Volta para a lista
+              router.back();
             } catch (err) {
               Alert.alert('Erro', 'Não foi possível excluir a reunião.');
             }
@@ -89,7 +89,6 @@ export default function MeetingDetailScreen() {
         <View style={styles.infoRow}>
           <Clock size={20} color={theme.colors.primary} />
           <Text style={styles.infoText}>
-            {/* Força a interpretação da data como UTC antes de formatar para local */}
             {new Date(meeting.data.endsWith('Z') ? meeting.data : meeting.data + 'Z').toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </Text>
         </View>

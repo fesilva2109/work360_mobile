@@ -36,6 +36,7 @@ export default function EditTaskScreen() {
   const [prioridade, setPrioridade] = useState('MEDIA');
   const [estimativa, setEstimativa] = useState('');
   const [loading, setLoading] = useState(true);
+  const [originalTask, setOriginalTask] = useState<Tarefa | null>(null); 
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -44,10 +45,11 @@ export default function EditTaskScreen() {
     const fetchTask = async () => {
       try {
         const task = await taskService.getTaskById(taskId);
+        setOriginalTask(task);
         setTitulo(task.titulo);
         setDescricao(task.descricao || '');
         setPrioridade(task.prioridade);
-        setEstimativa((task.estimativaMinutos / 60).toString()); // Converte minutos para horas
+        setEstimativa((task.estimativaMinutos / 60).toString()); 
       } catch (error) {
         Alert.alert('Erro', 'Não foi possível carregar a tarefa.');
         router.back();
@@ -79,13 +81,13 @@ export default function EditTaskScreen() {
         descricao: descricao.trim() || undefined,
         prioridade: prioridade as 'ALTA' | 'MEDIA' | 'BAIXA',
         estimativaMinutos: estimativaEmMinutos,
-        concluida: false, // A API espera este campo
+        concluida: originalTask?.concluida || false, 
       };
 
       await taskService.updateTask(taskId, taskData);
 
       Alert.alert('Sucesso!', 'Tarefa atualizada.');
-      router.back();
+      router.replace('/(tabs)/tasks');
     } catch (error) {
       console.error(error);
       Alert.alert('Erro', 'Não foi possível atualizar a tarefa. Tente novamente.');

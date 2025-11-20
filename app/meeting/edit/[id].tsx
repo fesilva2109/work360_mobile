@@ -46,7 +46,6 @@ export default function EditMeetingScreen() {
 
     setIsSaving(true);
     try {
-      // Combina a data selecionada com a hora selecionada
       const combinedDateTime = new Date(formData.data);
       combinedDateTime.setUTCHours(formData.time.getUTCHours());
       combinedDateTime.setUTCMinutes(formData.time.getUTCMinutes());
@@ -56,11 +55,10 @@ export default function EditMeetingScreen() {
       const meetingData: UpdateReuniaoDTO = {
         ...formData,
         data: combinedDateTime.toISOString(),
-        usuarioId: usuario.id, // Adiciona o ID do usuário
+        usuarioId: usuario.id, 
       };
       await meetingService.updateMeeting(meetingId, meetingData);
       Alert.alert('Sucesso', 'Reunião atualizada com sucesso!');
-      // Navega duas telas para trás: da edição para a lista, pulando os detalhes.
       if (router.canGoBack()) {
         router.back();
       }

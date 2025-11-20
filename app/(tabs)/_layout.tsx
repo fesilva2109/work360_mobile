@@ -15,10 +15,11 @@ export default function TabLayout() {
         tabBarInactiveTintColor: theme.colors.textLight,
         tabBarStyle: {
           backgroundColor: theme.colors.background,
+          borderTopWidth: 1, 
           borderTopColor: theme.colors.border,
-          height: 70,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: 75, 
+          paddingBottom: 5, 
+          paddingTop: 5, 
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -43,7 +44,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="focus"
         options={{
-          title: '', // Sem título para o botão central
+          title: '',
           tabBarButton: () => (
             <TouchableOpacity
               style={styles.focusButtonContainer}
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: -25, // Eleva o botão
+    marginTop: -20, 
     ...theme.shadows.large,
     borderWidth: 3,
     borderColor: theme.colors.background,

@@ -1,5 +1,5 @@
 import { NavigatorScreenParams } from '@react-navigation/native';
-import { RelatorioGerado } from '../types/report.types';
+import { RelatorioGerado } from './report.types';
 
 // Telas de Autenticação
 export type AuthStackParamList = {
@@ -24,7 +24,7 @@ export type MeetingsStackParamList = {
 // Telas de Relatórios
 export type ReportsStackParamList = {
   ReportList: undefined;
-  ReportDetail: { report: RelatorioGerado }; // Passando o objeto inteiro como exemplo
+  ReportDetail: { report: RelatorioGerado };
 };
 
 // Abas principais do App

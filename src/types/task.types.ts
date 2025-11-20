@@ -7,16 +7,13 @@ export interface Tarefa {
   titulo: string;
   descricao?: string;
   prioridade: Prioridade;
-  estimativaMinutos?: number; // Opcional, como no formulário.
+  estimativaMinutos?: number;
 }
 
-/**
- * DTO para criação de uma nova tarefa.
- * O `usuarioId` será inferido pelo backend a partir do token.
- */
+//DTO para criação de uma nova tarefa.
+
 export type CreateTarefaDTO = Omit<Tarefa, 'id' | 'usuarioId'>;
 
-/**
- * DTO para atualização de uma tarefa existente.
- */
+// DTO para atualização de uma tarefa existente.
+
 export type UpdateTarefaDTO = Partial<Omit<Tarefa, 'id' | 'usuarioId'>>;

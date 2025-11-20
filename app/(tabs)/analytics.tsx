@@ -8,7 +8,7 @@ import reportService from '../../src/services/reportService';
 import { RelatorioGerado } from '../../src/types/report.types';
 import { theme } from '../../src/styles/theme';
 
-// Componente para os cards de métricas
+// card para exibir uma métrica de conquista.
 const AchievementCard = ({ icon, value, label }: { icon: React.ReactNode; value: string | number; label: string }) => (
   <View style={styles.achievementCard}>
     {icon}
@@ -17,30 +17,19 @@ const AchievementCard = ({ icon, value, label }: { icon: React.ReactNode; value:
   </View>
 );
 
-// Componente para a barra de Risco de Burnout
-const RiskBar = ({ value }: { value: number | null | undefined }) => {
-  const riskValue = value || 0;
-  const getColor = () => {
-    if (riskValue > 0.7) return theme.colors.error;
-    if (riskValue > 0.4) return theme.colors.warning;
-    return theme.colors.success;
-  };
-  return (
-    <View style={styles.riskBarContainer}>
-      <View style={[styles.riskBar, { width: `${riskValue * 100}%`, backgroundColor: getColor() }]} />
-    </View>
-  );
-};
-
 export default function AnalyticsScreen() {
   const { usuario } = useAuth();
-  // Estado para o relatório mais recente (para as métricas)
+  //Guarda o relatório mais recente, usado para exibir as métricas de Suas Conquistas.
   const [latestReportForMetrics, setLatestReportForMetrics] = useState<RelatorioGerado | null>(null);
-  // Estado para o relatório mais recente que TEM insights
+  // Guarda o relatório mais recente que já foi analisado pela IA. 
   const [latestReportForInsight, setLatestReportForInsight] = useState<RelatorioGerado | null>(null);
 
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  // Busca os relatórios do usuário no backend e os separa em dois estados:
+  // O mais recente de todos - para as métricas.
+  // O mais recente que já tem insights da IA.
 
   const fetchLatestReport = useCallback(async () => {
     if (!usuario) return;
@@ -49,11 +38,9 @@ export default function AnalyticsScreen() {
       const reports = await reportService.getUserReports(usuario.id);
       reports.sort((a, b) => b.id - a.id);
 
-      // 1. Pega o relatório mais recente de todos para as métricas de "Suas Conquistas"
       const latestReport = reports.length > 0 ? reports[0] : null;
       setLatestReportForMetrics(latestReport);
 
-      // 2. Encontra o relatório mais recente que JÁ POSSUI insights
       const latestWithInsights = reports.find(r => r.insights);
       setLatestReportForInsight(latestWithInsights || null);
 
@@ -64,6 +51,7 @@ export default function AnalyticsScreen() {
     }
   }, [usuario]);
 
+  // Recarrega os dados.
   useFocusEffect(
     useCallback(() => {
       fetchLatestReport();
@@ -77,7 +65,7 @@ export default function AnalyticsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <Stack.Screen
         options={{
-          headerShown: false, // Remove o cabeçalho padrão
+          headerShown: false,
         }}
       />
       <ScrollView style={styles.container}>
@@ -86,15 +74,12 @@ export default function AnalyticsScreen() {
           <Text style={styles.title}>Sua Produtividade</Text>
         </View>
 
-        {/* --- NOVAS SEÇÕES DE AÇÃO --- */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity style={styles.actionCard} onPress={() => router.push('/reports')}>
             <FilePlus size={36} color={theme.colors.primary} />
             <Text style={styles.actionCardTitle}>Gerar Novo Relatório</Text>
             <Text style={styles.actionCardSubtitle}>Analise um novo período.</Text>
           </TouchableOpacity>
-
-          {/* O botão agora depende do relatório mais recente COM insight */}
           {latestReportForInsight && (
             <TouchableOpacity
               style={styles.actionCard}
@@ -111,8 +96,7 @@ export default function AnalyticsScreen() {
           )}
         </View>
 
-        {/* --- NOVO CARD DE NOTIFICAÇÃO --- */}
-        {/* Aparece se o relatório mais recente não tem insight, mas um mais antigo tem */}
+        {/* Mostra um card de notificação se o último relatório gerado ainda não foi analisado pela IA */}
         {latestReportForMetrics && !latestReportForMetrics.insights && (
           <View style={styles.notificationCard}>
             <View style={{ flex: 1 }}>
@@ -122,7 +106,7 @@ export default function AnalyticsScreen() {
             <TouchableOpacity
               style={styles.notificationButton}
               onPress={() => router.push({
-                pathname: `/report/${latestReportForMetrics.id}`,
+                pathname: '/report/[id]',
                 params: { report: JSON.stringify(latestReportForMetrics) }
               })}
             >
@@ -131,9 +115,7 @@ export default function AnalyticsScreen() {
           </View>
         )}
 
-        {/* As métricas sempre usam o relatório mais recente de todos */}
         {latestReportForMetrics ? (
-          // Se existe um relatório, mostra as métricas e insights
           <>
             <View style={styles.achievementsHeader}>
               <Trophy size={24} color={theme.colors.warning} />
@@ -151,7 +133,6 @@ export default function AnalyticsScreen() {
             </View>
         </>
         ) : (
-          // Se não existe relatório, mostra o estado vazio
           <View style={styles.emptyStateContainer}>
             <LinearGradient
               colors={['#E3F2FD', theme.colors.surface]}
@@ -172,7 +153,11 @@ export default function AnalyticsScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: theme.colors.background },
-  container: { flex: 1, padding: theme.spacing.lg },
+  container: {
+    flex: 1,
+    padding: theme.spacing.lg,
+    paddingBottom: 90,
+  },
   header: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, marginBottom: theme.spacing.lg },
   title: { fontSize: 24, fontWeight: '700', color: theme.colors.text },
   actionsContainer: {
@@ -186,18 +171,18 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.lg,
     paddingVertical: 40,
     alignItems: 'center',
-    justifyContent: 'center', // Centraliza o conteúdo
+    justifyContent: 'center', 
     ...theme.shadows.medium,
-    gap: theme.spacing.lg, // Aumenta o espaçamento interno
+    gap: theme.spacing.lg, 
   },
   actionCardTitle: {
-    fontSize: 18, // Fonte maior
+    fontSize: 18, 
     fontWeight: 'bold',
     color: theme.colors.text,
-    textAlign: 'center', // Garante o alinhamento
+    textAlign: 'center', 
   },
   actionCardSubtitle: {
-    fontSize: 14, // Fonte maior
+    fontSize: 14, 
     color: theme.colors.textSecondary,
     textAlign: 'center',
   },
