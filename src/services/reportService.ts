@@ -1,5 +1,5 @@
 import api from './api';
-import { RelatorioGerado } from '../types/models';
+import { RelatorioGerado } from '../types/report.types';
 
 interface GerarRelatorioRequest {
   usuarioId: number;
@@ -39,6 +39,38 @@ class ReportService {
     const { data } = await api.get<RelatorioGerado>(`/ia/relatorio/${relatorioId}`);
     console.log('[ReportService] Relatório enriquecido com sucesso.');
     return data;
+  }
+
+  /**
+   * Busca todos os relatórios salvos para um usuário.
+   */
+  async getUserReports(userId: number): Promise<RelatorioGerado[]> {
+    try {
+      console.log(`[ReportService] Buscando relatórios para o usuário ID: ${userId}`);
+      // CONFIRMADO: Swagger indica que o endpoint é /relatorios/{usuarioId}
+      const { data } = await api.get<RelatorioGerado[]>(`/relatorios/${userId}`);
+      console.log(`[ReportService] ${data.length} relatórios encontrados.`);
+      return data;
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Erro ao buscar relatórios do usuário.';
+      console.error('[ReportService] Erro:', errorMessage);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Deleta um relatório específico pelo seu ID.
+   */
+  async deleteReport(reportId: number): Promise<void> {
+    try {
+      console.log(`[ReportService] Deletando relatório ID: ${reportId}`);
+      await api.delete(`/relatorios/${reportId}`);
+      console.log('[ReportService] Relatório deletado com sucesso.');
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Erro ao deletar o relatório.';
+      console.error('[ReportService] Erro:', errorMessage);
+      throw new Error(errorMessage);
+    }
   }
 }
 

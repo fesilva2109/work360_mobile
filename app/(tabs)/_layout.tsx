@@ -1,9 +1,12 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Home, CheckSquare, Calendar, TrendingUp, User, Zap } from 'lucide-react-native';
 import { theme } from '../../src/styles/theme';
 import React from 'react';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 
 export default function TabLayout() {
+  const router = useRouter();
+
   return (
     <Tabs
       screenOptions={{
@@ -13,7 +16,7 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.background,
           borderTopColor: theme.colors.border,
-          height: 80,
+          height: 70,
           paddingBottom: 8,
           paddingTop: 8,
         },
@@ -38,17 +41,26 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="focus"
+        options={{
+          title: '', // Sem título para o botão central
+          tabBarButton: () => (
+            <TouchableOpacity
+              style={styles.focusButtonContainer}
+              onPress={() => router.push('/focus')}
+            >
+              <View style={styles.focusButton}>
+                <Zap size={32} color="#FFFFFF" />
+              </View>
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="meetings"
         options={{
           title: 'Reuniões',
           tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="focus"
-        options={{
-          title: 'Foco',
-          tabBarIcon: ({ color, size }) => <Zap size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -58,13 +70,25 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <TrendingUp size={size} color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Perfil',
-          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
-        }}
-      />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  focusButtonContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  focusButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: -25, // Eleva o botão
+    ...theme.shadows.large,
+    borderWidth: 3,
+    borderColor: theme.colors.background,
+  },
+});

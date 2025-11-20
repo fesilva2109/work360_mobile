@@ -11,6 +11,26 @@ export const api = axios.create({
   },
 });
 
+// Interceptador de Requisição: Adiciona o token de autenticação em todas as chamadas.
+api.interceptors.request.use(
+  async (config: InternalAxiosRequestConfig) => {
+    // Não adiciona o token em rotas públicas como login e cadastro
+    if (config.url === '/login' || (config.url === '/usuarios' && config.method === 'post')) {
+      return config;
+    }
+
+    const token = await AsyncStorage.getItem('@Work360:token');
+    if (token) {
+      // Adiciona o cabeçalho de autorização
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    // Faz algo com o erro da requisição
+    return Promise.reject(error);
+  }
+);
 
 api.interceptors.response.use(
   (response) => response,

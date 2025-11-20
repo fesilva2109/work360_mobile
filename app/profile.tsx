@@ -1,8 +1,8 @@
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
-import { useAuth } from '../../src/contexts/AuthContext';
-import { Button } from '../../src/components/Button';
-import { Card } from '../../src/components/Card';
-import { theme } from '../../src/styles/theme';
+import { useAuth } from '../src/contexts/AuthContext';
+import { Button } from '../src/components/Button';
+import { Card } from '../src/components/Card';
+import { theme } from '../src/styles/theme';
 import { useRouter } from 'expo-router';
 import { User, Mail, LogOut } from 'lucide-react-native';
 import React from 'react';

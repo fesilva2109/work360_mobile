@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl, SafeAreaView } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useFocusEffect } from 'expo-router';
 import { Card } from '../components/Card';
 import { theme } from '../styles/theme';
 import taskService from '../services/taskService';
@@ -18,12 +19,6 @@ export function DashboardScreen() {
     minutosFoco: 0,
   });
 
-  useEffect(() => {
-    if (usuario) {
-      loadDashboardData();
-    }
-  }, [usuario]); // A dependência agora é o objeto 'usuario'
-
   const loadDashboardData = async () => {
     if (!usuario) return;
 
@@ -38,11 +33,14 @@ export function DashboardScreen() {
         analyticsService.getTodaysMetrics(usuario.id),
       ]);
 
-      const tarefasPendentes = tarefasResponse.length;
+      // --- CORREÇÃO DA LÓGICA ---
+      // Agora, calculamos as estatísticas a partir da lista de tarefas em tempo real.
+      const tarefasPendentes = tarefasResponse.filter(t => !t.concluida).length;
+      const tarefasConcluidasHoje = tarefasResponse.filter(t => t.concluida).length; // Simplificado para contar todas as concluídas.
 
       setStats({
         tarefasPendentes: tarefasPendentes,
-        tarefasConcluidas: metricasHoje?.tarefasConcluidasNoDia || 0,
+        tarefasConcluidas: tarefasConcluidasHoje,
         proximasReunioes: reunioesResponse.length,
         minutosFoco: metricasHoje?.minutosFoco || 0,
       });
@@ -52,6 +50,13 @@ export function DashboardScreen() {
       setLoading(false);
     }
   };
+
+  // useFocusEffect é executado toda vez que a tela entra em foco.
+  useFocusEffect(
+    useCallback(() => {
+      loadDashboardData();
+    }, [usuario]) // Recarrega se o usuário mudar (login/logout)
+  );
 
   return (
     <SafeAreaView style={styles.container}>

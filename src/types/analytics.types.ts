@@ -1,8 +1,9 @@
 export type TipoEvento =
-  | 'START_FOCUS'
-  | 'END_FOCUS'
-  | 'TASK_COMPLETE'
-  | 'REUNIAO_INICIADA';
+  | 'FOCO_INICIO'      // Corrigido de START_FOCUS
+  | 'FOCO_FIM'         // Corrigido de END_FOCUS
+  | 'TAREFA_CONCLUIDA' // Corrigido de TASK_COMPLETE
+  | 'REUNIAO_INICIO'   // Corrigido de REUNIAO_INICIADA
+  | 'REUNIAO_FIM';
 
 export interface AnalyticsEvento {
   id?: number; // Opcional na criação
@@ -14,13 +15,3 @@ export interface AnalyticsEvento {
 }
 
 export type CreateEventoDTO = Omit<AnalyticsEvento, 'id' | 'timestamp'>;
-
-export interface AnalyticsMetrica {
-  id: number;
-  usuarioId: number;
-  data: string; // YYYY-MM-DD
-  minutosFoco: number;
-  minutosReuniao: number;
-  tarefasConcluidasNoDia: number;
-  periodoMaisProdutivo: string;
-}

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Animated, Platform } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
 import focusService from '../../src/services/focusService';
+import analyticsService from '../../src/services/analyticsService';
 import { FocusSession } from '../../src/types/focus.types';
 import { theme } from '../../src/styles/theme';
 import { Zap, Timer, Mic } from 'lucide-react-native';
@@ -54,6 +55,12 @@ export default function FocusModeScreen() {
       setSession(newSession);
       setElapsedTime(0);
       startTimer();
+
+      // 🔥 AÇÃO: Envia o evento de início de foco
+      analyticsService.createEvento({
+        usuarioId: usuario.id,
+        tipoEvento: 'FOCO_INICIO', // CORRIGIDO
+      });
     } catch (error: any) {
       Alert.alert('Erro ao Iniciar', error.message);
     } finally {
@@ -73,6 +80,12 @@ export default function FocusModeScreen() {
         'Sessão Encerrada!',
         `BPM Médio: ${stoppedSession.avgBpm || 'N/A'} | Ruído: ${stoppedSession.avgNoiseDb?.toFixed(0) || 'N/A'} dB`
       );
+
+      // 🔥 AÇÃO: Envia o evento de fim de foco
+      analyticsService.createEvento({
+        usuarioId: usuario.id,
+        tipoEvento: 'FOCO_FIM', // CORRIGIDO
+      });
       setSession(null); // Reseta o estado para a tela inicial
       setElapsedTime(0);
     } catch (error: any) {

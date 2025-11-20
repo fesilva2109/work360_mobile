@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useRoute, useNavigation, RouteProp, useFocusEffect } from '@react-navigation/native';
-import reportService from '../services/reportService';
-import { RelatorioGerado } from '../types/report.types';
-import { theme } from '../styles/theme';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
+import reportService from '../../src/services/reportService';
+import { RelatorioGerado } from '../../src/types/report.types';
+import { theme } from '../../src/styles/theme';
 import { CheckCircle, Clock, Calendar, BrainCircuit, Trophy, Sparkles } from 'lucide-react-native';
 
-type ReportStackNavigatorParams = {
-  ReportDetail: { report: RelatorioGerado };
-};
-
-type ReportDetailRouteProp = RouteProp<ReportStackNavigatorParams, 'ReportDetail'>;
-
+// Componente simples para barra de progresso
+// Componente para os "Achievements"
 const AchievementCard = ({ icon, value, label, style }: { icon: React.ReactNode; value: string | number; label: string; style?: object }) => (
   <View style={[styles.achievementCard, style]}>
     {icon}
@@ -20,13 +16,26 @@ const AchievementCard = ({ icon, value, label, style }: { icon: React.ReactNode;
   </View>
 );
 
-export function ReportDetailScreen() {
-  const route = useRoute<ReportDetailRouteProp>();
+export default function ReportDetailScreen() {
   const navigation = useNavigation();
-  const [report, setReport] = useState<RelatorioGerado>(route.params.report);
+  const [report, setReport] = useState<RelatorioGerado | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
+
+ 
+  // Como o backend não tem um getReportById, vamos receber o objeto via params.
+  // O expo-router permite isso.
+  const params = useLocalSearchParams();
+  useEffect(() => {
+    if (params.report) {
+      setReport(JSON.parse(params.report as string));
+    }
+    setLoading(false);
+  }, [params.report]);
+
   const handleEnrichReport = async () => {
+    if (!report) return;
     setIsGeneratingAI(true);
     try {
       // Chama o serviço para enriquecer o relatório com a IA
@@ -36,7 +45,9 @@ export function ReportDetailScreen() {
       Alert.alert(
         "Análise Concluída!",
         "Seus insights de produtividade estão prontos. Vamos visualizá-los agora.",
-        [{ text: "OK", onPress: () => navigation.navigate('Produtividade' as never) }]
+        [{ text: "OK", onPress: () => {
+          navigation.navigate('(tabs)', { screen: 'analytics' });
+        }}]      
       );
     } catch (error) {
       Alert.alert("Erro", "Não foi possível gerar a análise de IA no momento.");
@@ -46,6 +57,7 @@ export function ReportDetailScreen() {
   };
 
   const handleDelete = () => {
+    if (!report) return;
     Alert.alert("Confirmar Exclusão", "Tem certeza que deseja excluir este relatório?", [
       { text: "Cancelar", style: "cancel" },
       {
@@ -64,6 +76,10 @@ export function ReportDetailScreen() {
     ]);
   };
 
+  if (loading || !report) {
+    return <View style={styles.container}><ActivityIndicator size="large" color={theme.colors.primary} /></View>;
+  }
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerContainer}>
@@ -74,13 +90,11 @@ export function ReportDetailScreen() {
         </Text>
       </View>
 
-      {/* Seção de "Achievements" */}
       <View style={styles.achievementsGrid}>
         <AchievementCard icon={<CheckCircle size={32} color={theme.colors.success} />} value={report.tarefasConcluidas} label="Tarefas Concluídas" />
         <AchievementCard icon={<Clock size={32} color={theme.colors.primary} />} value={report.minutosFocoTotal} label="Minutos de Foco" />
         <AchievementCard icon={<Calendar size={32} color={theme.colors.info} />} value={report.reunioesRealizadas} label="Reuniões" />
       </View>
-
       {/* Seção Condicional da IA */}
       {report.insights ? (
         // Se já tem análise, mostra os resultados
@@ -114,22 +128,22 @@ export function ReportDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
-  headerContainer: { alignItems: 'center', padding: 24 },
-  header: { fontSize: 28, fontWeight: '700', color: theme.colors.text, marginTop: 8 },
-  subHeader: { fontSize: 14, color: theme.colors.textSecondary, marginTop: 4 },
-  achievementsGrid: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, marginBottom: 24 },
-  achievementCard: {
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: theme.colors.surface,
-    borderRadius: theme.borderRadius.lg,
-    width: '30%',
-    ...theme.shadows.medium,
-  },
-  achievementValue: { fontSize: 36, fontWeight: 'bold', color: theme.colors.primary, marginVertical: 8 },
-  achievementLabel: { fontSize: 12, color: theme.colors.textSecondary, textAlign: 'center', fontWeight: '500' },
-  card: {
+    container: { flex: 1, backgroundColor: theme.colors.background },
+    headerContainer: { alignItems: 'center', padding: 24 },
+    header: { fontSize: 28, fontWeight: '700', color: theme.colors.text, marginTop: 8 },
+    subHeader: { fontSize: 14, color: theme.colors.textSecondary, marginTop: 4 },
+    achievementsGrid: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, marginBottom: 24 },
+    achievementCard: {
+      alignItems: 'center',
+      padding: 16,
+      backgroundColor: theme.colors.surface,
+      borderRadius: theme.borderRadius.lg,
+      width: '30%',
+      ...theme.shadows.medium,
+    },
+    achievementValue: { fontSize: 36, fontWeight: 'bold', color: theme.colors.primary, marginVertical: 8 },
+    achievementLabel: { fontSize: 12, color: theme.colors.textSecondary, textAlign: 'center', fontWeight: '500' },
+    card: {
     backgroundColor: theme.colors.surface,
     borderRadius: theme.borderRadius.lg,
     padding: 16,

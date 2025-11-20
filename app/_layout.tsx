@@ -3,19 +3,15 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { AuthProvider, useAuth } from '../src/contexts/AuthContext';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { theme } from '../src/styles/theme';
-import { FocusProvider } from '../src/contexts/FocusContext';
 
-/**
- * Componente que gerencia a navegação principal, decidindo se mostra
- * as telas do app ou a tela de login com base no estado de autenticação.
- */
+//Componente que gerencia a navegação principal
+
 function AppLayout() {
   const { usuario, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    // Aguarda o AuthContext terminar de carregar a sessão.
     if (isLoading) {
       return;
     }
@@ -36,13 +32,13 @@ function AppLayout() {
     );
   }
 
-  // Após o carregamento, o Stack decide qual tela mostrar.
-  // O Expo Router irá renderizar a tela correspondente à URL atual.
-  // Se o usuário não estiver logado, ele será redirecionado pelo useEffect acima.
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="reports" options={{ title: 'Gerar Relatório', presentation: 'modal' }} />
+      <Stack.Screen name="report/[id]" options={{ title: 'Detalhes do Relatório' }} />
+      <Stack.Screen name="profile" options={{ title: 'Meu Perfil' }} />
       <Stack.Screen name="task/[id]" options={{ headerShown: false }} />
     </Stack>
   );

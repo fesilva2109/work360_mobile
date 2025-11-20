@@ -105,7 +105,15 @@ export default function TasksScreen() {
         concluida: !tarefa.concluida,
       };
       await taskService.updateTask(tarefa.id, taskToUpdate);
-      // TODO: Enviar evento para o analytics
+
+      // 🔥 AÇÃO: Envia o evento para o analytics APENAS se a tarefa foi marcada como concluída.
+      if (!tarefa.concluida) { // Se o estado anterior era "não concluída"
+        analyticsService.createEvento({
+          usuarioId: usuario.id,
+          tarefaId: tarefa.id,
+          tipoEvento: 'TAREFA_CONCLUIDA',
+        });
+      }
     } catch (error) {
       console.error('Erro ao concluir a tarefa:', error);
       // 4. Se a sincronização falhar, reverte a UI para o estado original.

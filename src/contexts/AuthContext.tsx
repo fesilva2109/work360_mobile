@@ -33,9 +33,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (storedUser && storedToken) {
           console.log('[AuthContext] Sessão encontrada. Carregando...');
           const userObject = JSON.parse(storedUser);
-          
-          // Configura o cabeçalho da API para todas as futuras requisições
-          api.defaults.headers.Authorization = `Bearer ${storedToken}`;
 
           setUsuario(userObject);
           setToken(storedToken);
@@ -60,9 +57,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const { usuario: user, token: authToken } = response;
 
-    // Configura o cabeçalho da API
-    api.defaults.headers.Authorization = `Bearer ${authToken}`;
-
     setUsuario(user);
     setToken(authToken);
 
@@ -80,8 +74,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const { usuario: user, token: authToken } = response;
 
-    api.defaults.headers.Authorization = `Bearer ${authToken}`;
-
     setUsuario(user);
     setToken(authToken);
 
@@ -94,9 +86,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('[AuthContext] Realizando logout...');
     setUsuario(null);
     setToken(null);
-
-    // Limpa o cabeçalho da API primeiro
-    delete api.defaults.headers.common.Authorization;
 
     // Remove os dados do AsyncStorage
     await AsyncStorage.removeItem(USER_STORAGE_KEY);

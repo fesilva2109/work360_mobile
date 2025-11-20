@@ -8,12 +8,12 @@ export interface RelatorioGerado {
   reunioesRealizadas: number;
   minutosFocoTotal: number;
   percentualConclusao: number;
-  riscoBurnout: number; // (de 0.0 a 1.0)
+  riscoBurnout: number | null; // (de 0.0 a 1.0, conforme Swagger)
   tendenciaProdutividade: string;
   tendenciaFoco: string;
-  insights: string;
-  recomendacaoIA: string;
-  resumoGeral: string;
+  insights: string | null; // Swagger indica que é uma string, não um array
+  recomendacaoIA: string | null; // Swagger indica que é uma string, não um objeto
+  resumoGeral: string | null; // Swagger indica que é uma string, não um objeto
   criadoEm: string;
 }
 
