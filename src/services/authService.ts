@@ -23,15 +23,24 @@ class AuthService {
 
   //Registra um novo usuário
  
-  async register(userData: RegisterRequest): Promise<Usuario> {
+  async register(userData: RegisterRequest): Promise<AuthResponse> {
     try {
       console.log('[AuthService] Tentando registrar novo usuário com:', { email: userData.email });
-      const { data: usuario } = await api.post<Usuario>('/usuarios', userData);
-      console.log('[AuthService] Registro API call bem-sucedido.');
-      return usuario;
+      await api.post<Usuario>('/usuarios', userData);
+      console.log('[AuthService] Usuário criado com sucesso no backend.');
+
+      console.log('[AuthService] Realizando login automático após registro...');
+      const authResponse = await this.login({ email: userData.email, senha: userData.senha });
+      
+      return authResponse;
+
     } catch (error: any) {
       console.error('[AuthService] Erro na chamada de registro API:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || 'Erro ao criar conta');
+
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw new Error('Não foi possível criar a conta. Tente novamente mais tarde.');
     }
   }
 

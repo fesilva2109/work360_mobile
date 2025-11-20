@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Home, CheckSquare, Calendar, TrendingUp, User } from 'lucide-react-native';
+import { Home, CheckSquare, Calendar, TrendingUp, User, Zap } from 'lucide-react-native';
 import { theme } from '../../src/styles/theme';
 import React from 'react';
 
@@ -42,6 +42,13 @@ export default function TabLayout() {
         options={{
           title: 'Reuniões',
           tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="focus"
+        options={{
+          title: 'Foco',
+          tabBarIcon: ({ color, size }) => <Zap size={size} color={color} />,
         }}
       />
       <Tabs.Screen

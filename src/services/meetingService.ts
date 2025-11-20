@@ -55,12 +55,15 @@ class MeetingService {
   /**
    * Busca todas as reuniões associadas a um usuário específico.
    */
-  async getMeetingsByUserId(userId: number): Promise<Reuniao[]> {
+  async getMeetingsByUserId(userId: number, pageNumber = 0): Promise<Reuniao[]> {
     try {
       console.log(`[MeetingService] Buscando reuniões para o usuário ID: ${userId}`);
-      const { data } = await api.get<Reuniao[]>('/reunioes', { params: { usuarioId: userId } });
-      console.log(`[MeetingService] ${data.length} reuniões encontradas para o usuário.`);
-      return data;
+      const { data } = await api.get<SpringPage<Reuniao>>('/reunioes', { 
+        params: { usuarioId: userId, page: pageNumber } 
+      });
+      console.log(`[MeetingService] ${data.content.length} reuniões encontradas para o usuário.`);
+      // Retorna apenas o array de reuniões, que é o que a tela espera.
+      return data.content;
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido ao buscar reuniões do usuário';
       console.error('[MeetingService] Erro ao buscar reuniões do usuário:', errorMessage);

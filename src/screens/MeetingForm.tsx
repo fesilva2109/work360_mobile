@@ -46,11 +46,19 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ initialData, onSave, i
   };
 
   const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    const currentTime = selectedTime || formData.time;
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
     }
-    setFormData(prev => ({ ...prev, time: currentTime }));
+
+    if (event.type === 'set' && selectedTime) {
+      const newTime = new Date(selectedTime);
+      // Arredonda os minutos para o múltiplo de 5 mais próximo.
+      const minutes = newTime.getMinutes();
+      const roundedMinutes = Math.round(minutes / 5) * 5;
+      newTime.setMinutes(roundedMinutes, 0, 0); // Zera segundos e milissegundos
+
+      setFormData(prev => ({ ...prev, time: newTime }));
+    }
   };
 
   const handleSubmit = () => {
@@ -153,6 +161,7 @@ export const MeetingForm: React.FC<MeetingFormProps> = ({ initialData, onSave, i
                 display="spinner"
                 onChange={handleTimeChange}
                 locale="pt-BR"
+                minuteInterval={5} // Define o intervalo de minutos para iOS
                 themeVariant="light"
               />
               <Button title="Confirmar" onPress={() => setShowTimePicker(false)} />

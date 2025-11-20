@@ -75,7 +75,8 @@ export default function TaskFormScreen() {
       }
       navigation.goBack();
     } catch (error) {
-      Alert.alert("Erro", `Não foi possível salvar a tarefa. ${error}`);
+      const message = error instanceof Error ? error.message : 'Tente novamente mais tarde.';
+      Alert.alert("Erro ao Salvar", `Não foi possível salvar a tarefa. ${message}`);
     } finally {
       setLoading(false);
     }

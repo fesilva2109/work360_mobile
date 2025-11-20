@@ -5,22 +5,25 @@ import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { theme } from '../src/styles/theme';
 import { FocusProvider } from '../src/contexts/FocusContext';
 
-function RootLayoutNav() {
+/**
+ * Componente que gerencia a navegação principal, decidindo se mostra
+ * as telas do app ou a tela de login com base no estado de autenticação.
+ */
+function AppLayout() {
   const { usuario, isLoading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return; // Não faz nada enquanto a sessão está sendo carregada
+    // Aguarda o AuthContext terminar de carregar a sessão.
+    if (isLoading) {
+      return;
+    }
 
-    const inAuthGroup = segments[0] === '(auth)';
-    const inAppGroup = segments[0] === '(tabs)';
+    const inTabsGroup = segments[0] === '(tabs)';
 
-    if (usuario && inAuthGroup) {
-      // Se o usuário está logado e tenta acessar uma tela de autenticação, redireciona para a home.
-      router.replace('/(tabs)/meetings');
-    } else if (!usuario && !inAuthGroup) {
-      // Se o usuário não está logado e está fora do grupo de autenticação, redireciona para o login.
+    // Se o usuário não está logado e está tentando acessar uma tela protegida, redireciona para o login.
+    if (!usuario && inTabsGroup) {
       router.replace('/login');
     }
   }, [usuario, isLoading, segments]);
@@ -33,21 +36,23 @@ function RootLayoutNav() {
     );
   }
 
+  // Após o carregamento, o Stack decide qual tela mostrar.
+  // O Expo Router irá renderizar a tela correspondente à URL atual.
+  // Se o usuário não estiver logado, ele será redirecionado pelo useEffect acima.
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="task/[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <FocusProvider>
-        <RootLayoutNav />
-      </FocusProvider>
-    </AuthProvider>
+    <AuthProvider> 
+        <AppLayout />
+     </AuthProvider>
   );
 }
 

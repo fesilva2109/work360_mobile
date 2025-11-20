@@ -7,8 +7,9 @@ import api from '../services/api';
 interface AuthContextData {
   usuario: Usuario | null;
   token: string | null;
-  isLoading: boolean;
+  isLoading: boolean; // Renomeado de 'loading' para consistência
   signIn(credentials: LoginRequest): Promise<void>;
+  signUp(credentials: any): Promise<void>; // Adicionada a função signUp
   signOut(): void;
 }
 
@@ -71,22 +72,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log(`[AuthContext] Sessão salva para o usuário: ${user.email}`);
   };
 
+  const signUp = async (credentials: any) => {
+    console.log('[AuthContext] Iniciando processo de signUp...');
+    // Supondo que seu authService tenha um método register
+    // e que ele retorne o mesmo formato do login.
+    const response = await authService.register(credentials);
+
+    const { usuario: user, token: authToken } = response;
+
+    api.defaults.headers.Authorization = `Bearer ${authToken}`;
+
+    setUsuario(user);
+    setToken(authToken);
+
+    await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    await AsyncStorage.setItem(TOKEN_STORAGE_KEY, authToken);
+    console.log(`[AuthContext] Nova conta criada e sessão salva para: ${user.email}`);
+  };
+
   const signOut = async () => {
     console.log('[AuthContext] Realizando logout...');
     setUsuario(null);
     setToken(null);
 
+    // Limpa o cabeçalho da API primeiro
+    delete api.defaults.headers.common.Authorization;
+
     // Remove os dados do AsyncStorage
     await AsyncStorage.removeItem(USER_STORAGE_KEY);
     await AsyncStorage.removeItem(TOKEN_STORAGE_KEY);
-
-    // Limpa o cabeçalho da API
-    delete api.defaults.headers.Authorization;
     console.log('[AuthContext] Sessão removida.');
   };
 
   return (
-    <AuthContext.Provider value={{ usuario, token, isLoading, signIn, signOut }}>
+    <AuthContext.Provider value={{ usuario, token, isLoading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

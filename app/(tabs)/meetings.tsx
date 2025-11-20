@@ -32,11 +32,8 @@ export default function MeetingsScreen() {
     try {
       setError(null);
       setLoading(true);
-      const allMeetings = await meetingService.getMeetings(); // Busca todas as reuniões
-      const userMeetings = allMeetings.filter(m => m.usuarioId === usuario.id);
-
-      // Ordena as reuniões pela data (mais recentes primeiro)
-      userMeetings.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+      // Garante que estamos chamando o serviço que filtra por usuário no backend.
+      const userMeetings = await meetingService.getMeetingsByUserId(usuario.id);
 
       const now = new Date();
       const upcomingMeetings = userMeetings.filter(m => new Date(m.data) >= now);
@@ -44,9 +41,13 @@ export default function MeetingsScreen() {
 
       const newSections = [];
       if (upcomingMeetings.length > 0) {
-        newSections.push({ title: 'Próximas Reuniões', data: upcomingMeetings.reverse() }); // Reverte para mostrar a mais próxima primeiro
+        // Ordena as próximas reuniões da mais próxima para a mais distante
+        upcomingMeetings.sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime());
+        newSections.push({ title: 'Próximas Reuniões', data: upcomingMeetings });
       }
       if (pastMeetings.length > 0) {
+        // Ordena as reuniões passadas da mais recente para a mais antiga
+        pastMeetings.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
         newSections.push({ title: 'Reuniões Passadas', data: pastMeetings });
       }
 

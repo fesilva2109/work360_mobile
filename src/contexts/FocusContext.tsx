@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect, useRef, ReactNode } from 'react';
 import iotService from '../services/iotService';
 import { useAuth } from './AuthContext';

@@ -38,8 +38,10 @@ export default function TasksScreen() {
 
     setLoading(true);
     try {
-      const data = await taskService.getTasks();
+      // Alterado para buscar apenas as tarefas do usuário logado
+      const data = await taskService.getTasksByUserId(usuario.id);
       setAllTasks(data);
+      console.log(`[TasksScreen] Recebidas ${data.length} tarefas para o usuário ID ${usuario.id}.`);
     } catch (error) {
       console.error('Erro ao carregar as tarefas:', error);
     } finally {
@@ -56,20 +58,16 @@ export default function TasksScreen() {
       setTaskSections([]);
       return;
     }
-    const myTasks = allTasks.filter(task => task.usuarioId == usuario.id);
-
-    // Log de depuração para garantir que o filtro funciona como esperado
-    if (allTasks.length > 0) {
-      console.log(`[TasksScreen] Filtrando ${allTasks.length} tarefas para o usuário ID ${usuario.id}. Encontradas: ${myTasks.length}.`);
-    }
-
+    
+    // O filtro de usuário não é mais necessário aqui, pois a API já retorna os dados corretos.
+    // A filtragem agora é apenas pela prioridade selecionada.
     const tasksToDisplay =
       filter === 'TODAS'
-        ? myTasks
-        : myTasks.filter((task) => task.prioridade === filter);
+        ? allTasks
+        : allTasks.filter((task) => task.prioridade === filter);
 
     // Separa as tarefas em pendentes e concluídas
-    const pendingTasks = tasksToDisplay.filter((task) => !task.concluida);
+    const pendingTasks = tasksToDisplay.filter((task) => !task.concluida).sort((a, b) => a.id - b.id);
     const completedTasks = tasksToDisplay.filter((task) => task.concluida);
 
     const sections = [];
