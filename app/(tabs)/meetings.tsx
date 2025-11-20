@@ -110,7 +110,7 @@ export default function MeetingsScreen() {
         renderItem={renderMeeting}
         renderSectionHeader={renderSectionHeader}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { flexGrow: 1 }]}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={fetchMeetings} />
         }

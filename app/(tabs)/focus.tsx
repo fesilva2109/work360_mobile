@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Platform, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Platform, SafeAreaView, ScrollView } from 'react-native';
 import { useAuth } from '../../src/contexts/AuthContext';
 import focusService from '../../src/services/focusService';
 import analyticsService from '../../src/services/analyticsService';
 import { FocusSession } from '../../src/types/focus.types';
 import { theme } from '../../src/styles/theme';
 import { Zap, Timer, BrainCircuit, HeartPulse, Ear, Check } from 'lucide-react-native';
+import { router } from 'expo-router';
 
 // Define os possíveis estados da tela
 type ViewMode = 'initial' | 'active' | 'summary';
@@ -14,6 +15,8 @@ interface SummaryData {
   avgBpm: number;
   avgNoiseDb: number;
   duration: number;
+  startTime: string;
+  endTime?: string;
 }
 
 export default function FocusModeScreen() {
@@ -96,6 +99,8 @@ export default function FocusModeScreen() {
         avgBpm: stoppedSession.avgBpm || 0,
         avgNoiseDb: stoppedSession.avgNoiseDb || 0,
         duration: elapsedTime,
+        startTime: stoppedSession.startTime,
+        endTime: stoppedSession.endTime,
       });
       // 🔥 AÇÃO: Envia o evento de fim de foco
       analyticsService.createEvento({
@@ -137,36 +142,56 @@ export default function FocusModeScreen() {
               onPress={handleStopSession}
               disabled={isLoading}
             >
-              {isLoading
-                ? <ActivityIndicator color="#FFF" />
-                : <Text style={styles.buttonText}>PARAR</Text>}
+              <View style={styles.buttonContent}>
+                {isLoading
+                  ? <ActivityIndicator color="#FFF" />
+                  : <Text style={styles.buttonText}>PARAR</Text>}
+              </View>
             </TouchableOpacity>
           </>
         );
       case 'summary':
         return (
           <>
-            <Text style={styles.summaryTitle}>Sessão Concluída!</Text>
-            <View style={styles.summaryMetricsContainer}>
-              <View style={styles.metricBox}>
-                <HeartPulse size={32} color={theme.colors.primary} />
-                <Text style={styles.metricValue}>{summaryData?.avgBpm.toFixed(0) ?? 'N/A'}</Text>
-                <Text style={styles.metricLabel}>BPM Médio</Text>
+            <ScrollView contentContainerStyle={styles.summaryContent}>
+              <Text style={styles.summaryTitle}>Sessão Concluída!</Text>
+              <View style={styles.summaryMetricsContainer}>
+                <View style={styles.metricBox}>
+                  <HeartPulse size={32} color={theme.colors.primary} />
+                  <Text style={styles.metricValue}>{summaryData?.avgBpm.toFixed(0) ?? 'N/A'}</Text>
+                  <Text style={styles.metricLabel}>BPM Médio</Text>
+                </View>
+                <View style={styles.metricBox}>
+                  <Ear size={32} color={theme.colors.primary} />
+                  <Text style={styles.metricValue}>{summaryData?.avgNoiseDb.toFixed(0) ?? 'N/A'} dB</Text>
+                  <Text style={styles.metricLabel}>Ruído Médio</Text>
+                </View>
               </View>
-              <View style={styles.metricBox}>
-                <Ear size={32} color={theme.colors.primary} />
-                <Text style={styles.metricValue}>{summaryData?.avgNoiseDb.toFixed(0) ?? 'N/A'} dB</Text>
-                <Text style={styles.metricLabel}>Ruído Médio</Text>
-              </View>
-            </View>
-            <Text style={styles.summaryDuration}>Duração total: {formatTime(summaryData?.duration ?? 0)}</Text>
-            <TouchableOpacity
-              style={[styles.button, styles.startButton]}
-              onPress={handleFinishSummary}
-            >
-              <Check size={20} color="#FFF" />
-              <Text style={styles.buttonText}>CONCLUIR</Text>
-            </TouchableOpacity>
+              <Text style={styles.summaryDuration}>Duração total: {formatTime(summaryData?.duration ?? 0)}</Text>
+              <TouchableOpacity
+                style={[styles.button, styles.startButton]}
+                onPress={handleFinishSummary}
+              >
+                <View style={styles.buttonContent}>
+                  <Check size={20} color="#FFF" />
+                  <Text style={styles.buttonText}>CONCLUIR</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.secondaryButton]}
+                onPress={() => router.push({
+                  pathname: '../reports',
+                  params: {
+                    startTime: summaryData?.startTime,
+                    endTime: summaryData?.endTime,
+                  }
+                })}
+              >
+                <View style={styles.buttonContent}>
+                  <Text style={styles.secondaryButtonText}>Analisar Período de Foco</Text>
+                </View>
+              </TouchableOpacity>
+            </ScrollView>
           </>
         );
       case 'initial':
@@ -179,7 +204,9 @@ export default function FocusModeScreen() {
               onPress={handleStartSession}
               disabled={isLoading}
             >
-              {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>INICIAR</Text>}
+              <View style={styles.buttonContent}>
+                {isLoading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.buttonText}>INICIAR</Text>}
+              </View>
             </TouchableOpacity>
           </>
         );
@@ -247,15 +274,20 @@ const styles = StyleSheet.create({
   sensorContainer: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm },
   sensorText: { fontSize: 16, color: theme.colors.textSecondary, fontStyle: 'italic' },
   button: {
-    flexDirection: 'row',
-    gap: theme.spacing.sm,
     width: '80%',
     paddingVertical: theme.spacing.lg,
     borderRadius: theme.borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
     ...theme.shadows.medium,
     marginTop: theme.spacing.md,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    paddingLeft: 20,
+    paddingRight: 20,
+
   },
   startButton: { backgroundColor: theme.colors.primary },
   stopButton: { backgroundColor: theme.colors.primary }, // Deixa o botão de parar com a mesma cor dos outros
@@ -267,11 +299,27 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+  },
   summaryTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: theme.colors.text,
     textAlign: 'center',
+  },
+  summaryContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
   },
   summaryMetricsContainer: {
     flexDirection: 'row',
