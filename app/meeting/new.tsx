@@ -28,8 +28,10 @@ export default function NewMeetingScreen() {
       combinedDateTime.setUTCSeconds(0);
       combinedDateTime.setUTCMilliseconds(0);
 
+      const { time, ...restOfFormData } = formData;
+
       const meetingData: CreateReuniaoDTO = {
-        ...formData,
+        ...restOfFormData,
         data: combinedDateTime.toISOString(),
         usuarioId: usuario.id,
       };

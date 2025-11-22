@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { AuthProvider, useAuth } from "../src/contexts/AuthContext";
+import { FocusProvider } from '../src/contexts/FocusContext';
 import React from "react";
 
 function RootLayoutNav() {
@@ -21,7 +22,9 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <FocusProvider>
+        <RootLayoutNav />
+      </FocusProvider>
     </AuthProvider>
   );
 }

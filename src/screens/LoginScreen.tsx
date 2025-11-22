@@ -51,6 +51,8 @@ export function LoginScreen() {
 
     try {
       await signIn({ email, senha });
+      // Redireciona para a tela principal após o login bem-sucedido
+      router.replace('/(tabs)');
     } catch (error: any) {
       // Se o backend retornar 404, significa que o usuário não existe.
       if (error.response?.status === 404) {
