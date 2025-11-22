@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { ScrollView, StyleSheet, Alert, ActivityIndicator, SafeAreaView } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { MeetingForm, MeetingFormData } from '../../src/screens/MeetingForm';
 import { CreateReuniaoDTO } from '../../src/types/models';
@@ -44,10 +44,12 @@ export default function NewMeetingScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Stack.Screen options={{ title: 'Nova Reunião', headerBackTitle: 'Voltar' }} />
-      <MeetingForm onSave={handleSave} isSaving={isSaving} />
-    </ScrollView>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Stack.Screen options={{ title: 'Nova Reunião', headerBackTitle: 'Voltar' }} />
+        <MeetingForm onSave={handleSave} isSaving={isSaving} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

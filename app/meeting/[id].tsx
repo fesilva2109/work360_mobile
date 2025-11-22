@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Alert, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack, useFocusEffect } from 'expo-router';
 import meetingService from '../../src/services/meetingService';
 import { Reuniao } from '../../src/types/models';
@@ -72,54 +72,59 @@ export default function MeetingDetailScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <Stack.Screen options={{ title: 'Detalhes da Reunião', headerBackTitle: 'Voltar' }} />
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <Stack.Screen options={{ title: 'Detalhes da Reunião', headerBackTitle: 'Voltar' }} />
 
-      <Card>
-        <Text style={styles.title}>{meeting.titulo}</Text>
-        <Text style={styles.description}>{meeting.descricao}</Text>
+        <View style={styles.content}>
+          <Card>
+            <Text style={styles.title}>{meeting.titulo}</Text>
+            <Text style={styles.description}>{meeting.descricao}</Text>
 
-        <View style={styles.infoRow}>
-          <Calendar size={20} color={theme.colors.primary} />
-          <Text style={styles.infoText}>
-            {new Date(meeting.data.endsWith('Z') ? meeting.data : meeting.data + 'Z').toLocaleDateString('pt-BR')}
-          </Text>
+            <View style={styles.infoRow}>
+              <Calendar size={20} color={theme.colors.primary} />
+              <Text style={styles.infoText}>
+                {new Date(meeting.data.endsWith('Z') ? meeting.data : meeting.data + 'Z').toLocaleDateString('pt-BR')}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Clock size={20} color={theme.colors.primary} />
+              <Text style={styles.infoText}>
+                {new Date(meeting.data.endsWith('Z') ? meeting.data : meeting.data + 'Z').toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+
+            {meeting.link && (
+              <TouchableOpacity style={styles.infoRow}>
+                <LinkIcon size={20} color={theme.colors.primary} />
+                <Text style={[styles.infoText, styles.linkText]}>Acessar link da reunião</Text>
+              </TouchableOpacity>
+            )}
+          </Card>
+
+          <View style={styles.buttonContainer}>
+            <Button
+              title="Editar"
+              onPress={() => router.push(`/meeting/edit/${meeting.id}`)}
+              icon={<Edit size={18} color="white" />}
+            />
+            <Button
+              title="Excluir"
+              onPress={handleDelete}
+              variant="danger"
+              icon={<Trash2 size={18} color="white" />}
+            />
+          </View>
         </View>
-
-        <View style={styles.infoRow}>
-          <Clock size={20} color={theme.colors.primary} />
-          <Text style={styles.infoText}>
-            {new Date(meeting.data.endsWith('Z') ? meeting.data : meeting.data + 'Z').toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-          </Text>
-        </View>
-
-        {meeting.link && (
-          <TouchableOpacity style={styles.infoRow}>
-            <LinkIcon size={20} color={theme.colors.primary} />
-            <Text style={[styles.infoText, styles.linkText]}>Acessar link da reunião</Text>
-          </TouchableOpacity>
-        )}
-      </Card>
-
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Editar"
-          onPress={() => router.push(`/meeting/edit/${meeting.id}`)}
-          icon={<Edit size={18} color="white" />}
-        />
-        <Button
-          title="Excluir"
-          onPress={handleDelete}
-          variant="danger"
-          icon={<Trash2 size={18} color="white" />}
-        />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background, padding: theme.spacing.lg },
+  container: { flex: 1, backgroundColor: theme.colors.background },
+  content: { padding: theme.spacing.lg },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText: { color: theme.colors.error, textAlign: 'center', marginTop: 20 },
   title: { fontSize: 24, fontWeight: 'bold', color: theme.colors.text, marginBottom: theme.spacing.md },
