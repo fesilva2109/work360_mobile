@@ -4,10 +4,12 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { Home, CheckSquare, Calendar, TrendingUp, Zap } from 'lucide-react-native';
 import { theme } from '../../src/styles/theme';
 import { View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const { usuario, isLoading } = useAuth();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   if (isLoading) {
     return (
@@ -28,16 +30,17 @@ export default function TabLayout() {
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.textLight,
         tabBarStyle: {
-          backgroundColor: theme.colors.background,
+          backgroundColor: theme.colors.card, // Usar uma cor que se destaque para a barra
           borderTopWidth: 1,
           borderTopColor: theme.colors.border,
-          height: 75,
-          paddingBottom: 5,
-          paddingTop: 5,
+          height: 60 + insets.bottom, // Altura dinâmica + padding inferior
+          paddingBottom: insets.bottom, // Padding para a área segura inferior
+          paddingTop: 10,
         },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
+          marginTop: -5, // Ajuste fino para o texto
         },
       }}
     >

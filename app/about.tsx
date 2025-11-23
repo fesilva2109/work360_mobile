@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Platform, ScrollView, TouchableOpacity, Linking } from 'react-native';
-import { Stack } from 'expo-router';
+import { View, Text, StyleSheet, SafeAreaView, Platform, ScrollView, TouchableOpacity, Linking, StatusBar } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 import Constants from 'expo-constants';
 import { theme } from '../src/styles/theme';
 import { Info, Github, Mail, Code } from 'lucide-react-native';
@@ -16,6 +16,7 @@ const technologies = ['React Native', 'Expo', 'TypeScript', 'Expo Router', 'Axio
 
 export default function AboutScreen() {
   const commitHash = Constants.expoConfig?.extra?.commitHash || 'N/A';
+  const router = useRouter();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -62,13 +63,23 @@ export default function AboutScreen() {
           leftIcon={<Mail size={18} color="white" />}
           style={styles.contactButton}
         />
+
+        <Button
+          title="Voltar"
+          onPress={() => router.back()}
+          variant="outline"
+          style={styles.backButton}
+        />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
+  container: {
+    flex: 1, backgroundColor: theme.colors.background,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   content: {
     flexGrow: 1,
     alignItems: 'center',
@@ -131,6 +142,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   contactButton: {
+    width: '100%',
+    marginTop: theme.spacing.md,
+  },
+  backButton: {
     width: '100%',
     marginTop: theme.spacing.md,
   },

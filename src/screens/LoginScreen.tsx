@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
@@ -147,6 +148,11 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: theme.spacing.xxl,
+  },
+  logo: {
+    width: 100,
+    height: 100,
+    marginBottom: theme.spacing.lg,
   },
   title: {
     fontSize: 42,

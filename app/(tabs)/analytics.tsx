@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert, SafeAreaView, Platform } from 'react-native';
 import { useFocusEffect, useRouter, Stack } from 'expo-router';
 import { BrainCircuit, BarChart, Clock, CheckCircle, Trophy, FilePlus, Sparkles, Calendar } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -158,7 +158,15 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
     paddingBottom: 90,
   },
-  header: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, marginBottom: theme.spacing.lg },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
+    paddingTop: Platform.OS === 'android' ? theme.spacing.md : 0,
+    marginTop: Platform.OS === 'android' ? theme.spacing.md : 0,
+
+  },
   title: { fontSize: 24, fontWeight: '700', color: theme.colors.text },
   actionsContainer: {
     flexDirection: 'row',

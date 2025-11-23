@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useAuth } from '../src/contexts/AuthContext';
 import { Button } from '../src/components/Button';
 import { Card } from '../src/components/Card';
@@ -26,55 +26,57 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ title: 'Meu Perfil', headerBackTitle: 'Voltar' }} />
-      <View style={styles.header}>
-        <View style={styles.avatarContainer}>
-          <User size={48} color={theme.colors.primary} />
-        </View>
-        <Text style={styles.name}>{usuario?.nome}</Text>
-        <Text style={styles.email}>{usuario?.email}</Text>
-      </View>
-
-      <Card style={styles.infoCard}>
-        <View style={styles.infoRow}>
-          <User size={20} color={theme.colors.textSecondary} />
-          <View style={styles.infoContent}>
-            <Text style={styles.infoLabel}>Nome</Text>
-            <Text style={styles.infoValue}>{usuario?.nome}</Text>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <View style={styles.avatarContainer}>
+            <User size={48} color={theme.colors.primary} />
           </View>
+          <Text style={styles.name}>{usuario?.nome}</Text>
+          <Text style={styles.email}>{usuario?.email}</Text>
         </View>
 
-        <View style={styles.divider} />
-
-        <View style={styles.infoRow}>
-          <Mail size={20} color={theme.colors.textSecondary} />
-          <View style={styles.infoContent}>
-            <Text style={styles.infoLabel}>Email</Text>
-            <Text style={styles.infoValue}>{usuario?.email}</Text>
+        <Card style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <User size={20} color={theme.colors.textSecondary} />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Nome</Text>
+              <Text style={styles.infoValue}>{usuario?.nome}</Text>
+            </View>
           </View>
-        </View>
-      </Card>
 
-      <TouchableOpacity onPress={() => router.push('/about')}>
-        <Text style={styles.aboutLink}>Sobre o App</Text>
-      </TouchableOpacity>
+          <View style={styles.divider} />
 
-      <Button
-        title="Sair"
-        variant="danger"
-        onPress={handleLogout}
-        fullWidth
-        style={styles.logoutButton}
-      />
-    </ScrollView>
+          <View style={styles.infoRow}>
+            <Mail size={20} color={theme.colors.textSecondary} />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Email</Text>
+              <Text style={styles.infoValue}>{usuario?.email}</Text>
+            </View>
+          </View>
+        </Card>
+
+        <TouchableOpacity onPress={() => router.push('/about')}>
+          <Text style={styles.aboutLink}>Sobre o App</Text>
+        </TouchableOpacity>
+
+        <Button
+          title="Sair"
+          variant="danger"
+          onPress={handleLogout}
+          fullWidth
+          style={styles.logoutButton}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: theme.colors.background,
   },
   content: {
     padding: theme.spacing.lg,

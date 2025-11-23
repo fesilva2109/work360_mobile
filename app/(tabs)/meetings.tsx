@@ -8,6 +8,8 @@ import {
   RefreshControl,
   SafeAreaView,
   SectionList,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Reuniao } from '../../src/types/models';
@@ -121,12 +123,17 @@ export default function MeetingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.lg,
   },
   title: { fontSize: 28, fontWeight: '700', color: theme.colors.text },
   addButton: {
