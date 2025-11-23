@@ -1,32 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Platform, SafeAreaView, ScrollView } from 'react-native';
-import { useAuth } from '../../src/contexts/AuthContext';
-import focusService from '../../src/services/focusService';
-import analyticsService from '../../src/services/analyticsService';
-import { FocusSession } from '../../src/types/focus.types';
+import { useFocus } from '../../src/contexts/FocusContext';
 import { theme } from '../../src/styles/theme';
 import { Zap, Timer, BrainCircuit, HeartPulse, Ear, Check } from 'lucide-react-native';
 import { router } from 'expo-router';
 
-//Define os modos de visualização da tela: inicial, durante o foco, e o resumo final.
-
-type ViewMode = 'initial' | 'active' | 'summary';
-
-interface SummaryData {
-  avgBpm: number;
-  avgNoiseDb: number;
-  duration: number;
-  startTime: string;
-  endTime?: string;
-}
-
 export default function FocusModeScreen() {
-  const { usuario } = useAuth();
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Guarda a referência do timer para poder iniciá-lo e pará-lo.
-  const timerRef = useRef<number | null>(null);
+  const { status, elapsedTime, summary, isLoading, startFocusSession, stopFocusSession, finishSummary } = useFocus();
 
   //Formata o tempo total em segundos para o formato "MM:SS".
   const formatTime = (totalSeconds: number) => {
@@ -38,104 +18,30 @@ export default function FocusModeScreen() {
     return `${minutes}:${seconds}`;
   };
 
-  // Limpa o intervalo do timer para evitar execuções em segundo plano.
-  const clearTimer = () => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-  };
-
-  // Inicia um timer que atualiza o tempo decorrido a cada segundo.
-  const startTimer = useCallback(() => {
-    clearTimer();
-    timerRef.current = setInterval(() => {
-      setElapsedTime((prev) => prev + 1);
-    }, 1000);
-  }, []);
-
-  useEffect(() => {
-    return () => clearTimer();
-  }, []);
-
-  const [session, setSession] = useState<FocusSession | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('initial');
-  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
-
   //Inicia uma nova sessão de foco, chamando o backend e mudando a tela para o modo ativo.
 
   const handleStartSession = async () => {
-    if (!usuario) {
-      Alert.alert('Erro', 'Usuário não autenticado.');
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      const newSession = await focusService.startSession(usuario.id);
-      setSession(newSession);
-      setElapsedTime(0);
-      setViewMode('active');
-      startTimer();
-
-      // Registra o evento de início de foco para as estatísticas.
-      if (usuario) {
-        analyticsService.createEvento({
-          usuarioId: usuario.id,
-          tipoEvento: 'FOCO_INICIO',
-        });
-      }
+      await startFocusSession();
     } catch (error: any) {
       Alert.alert('Erro ao Iniciar', error.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   //Para a sessão de foco atual, salva os dados e exibe a tela de resumo.
 
   const handleStopSession = async () => {
-    if (!session) return;
-
-    setIsLoading(true);
-    clearTimer();
-
     try {
-      const stoppedSession = await focusService.stopSession(session.id);
-      setSummaryData({
-        avgBpm: stoppedSession.avgBpm || 0,
-        avgNoiseDb: stoppedSession.avgNoiseDb || 0,
-        duration: elapsedTime,
-        startTime: stoppedSession.startTime,
-        endTime: stoppedSession.endTime,
-      });
-      // Registra o evento de fim de foco.
-      if (usuario) {
-        analyticsService.createEvento({
-          usuarioId: usuario.id,
-          tipoEvento: 'FOCO_FIM',
-        });
-      }
-      setSession(null);
-      setElapsedTime(0);
-      setViewMode('summary');
+      await stopFocusSession();
     } catch (error: any) {
       Alert.alert('Erro ao Encerrar', error.message);
-      startTimer();
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  const handleFinishSummary = () => {
-    setSummaryData(null);
-    setViewMode('initial');
   };
 
   //Renderiza o conteúdo da tela com base no modo de visualização atual.
 
   const renderContent = () => {
-    switch (viewMode) {
+    switch (status) {
       case 'active':
         return (
           <>
@@ -168,19 +74,19 @@ export default function FocusModeScreen() {
               <View style={styles.summaryMetricsContainer}>
                 <View style={styles.metricBox}>
                   <HeartPulse size={32} color={theme.colors.primary} />
-                  <Text style={styles.metricValue}>{summaryData?.avgBpm.toFixed(0) ?? 'N/A'}</Text>
+                  <Text style={styles.metricValue}>{summary?.avgBpm.toFixed(0) ?? 'N/A'}</Text>
                   <Text style={styles.metricLabel}>BPM Médio</Text>
                 </View>
                 <View style={styles.metricBox}>
                   <Ear size={32} color={theme.colors.primary} />
-                  <Text style={styles.metricValue}>{summaryData?.avgNoiseDb.toFixed(0) ?? 'N/A'} dB</Text>
+                  <Text style={styles.metricValue}>{summary?.avgNoiseDb.toFixed(0) ?? 'N/A'} dB</Text>
                   <Text style={styles.metricLabel}>Ruído Médio</Text>
                 </View>
               </View>
-              <Text style={styles.summaryDuration}>Duração total: {formatTime(summaryData?.duration ?? 0)}</Text>
+              <Text style={styles.summaryDuration}>Duração total: {formatTime(summary?.duration ?? 0)}</Text>
               <TouchableOpacity
                 style={[styles.button, styles.startButton]}
-                onPress={handleFinishSummary}
+                onPress={finishSummary}
               >
                 <View style={styles.buttonContent}>
                   <Check size={20} color="#FFF" />
@@ -192,8 +98,8 @@ export default function FocusModeScreen() {
                 onPress={() => router.push({
                   pathname: '/reports',
                   params: {
-                    startTime: summaryData?.startTime,
-                    endTime: summaryData?.endTime,
+                    startTime: summary?.startTime,
+                    endTime: summary?.endTime,
                   }
                 })}
               >
@@ -204,7 +110,7 @@ export default function FocusModeScreen() {
             </ScrollView>
           </>
         );
-      case 'initial':
+      case 'inactive':
       default:
         return (
           <>
@@ -229,7 +135,7 @@ export default function FocusModeScreen() {
         <Zap size={32} color={theme.colors.primary} />
         <Text style={styles.title}>Modo Foco</Text>
         <Text style={styles.subtitle}>
-          {viewMode === 'active'
+          {status === 'active'
             ? 'Sessão em andamento...'
             : 'Maximize sua produtividade'}
         </Text>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import taskService from '../../src/services/taskService';
@@ -87,7 +87,7 @@ export default function TaskFormScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.label}>Título</Text>
       <TextInput style={styles.input} value={titulo} onChangeText={setTitulo} />
 
@@ -107,12 +107,15 @@ export default function TaskFormScreen() {
       </View>
 
       <Button title={loading ? "Salvando..." : "Salvar Tarefa"} onPress={handleSubmit} disabled={loading} />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#f5f5f5' },
+  container: {
+    flex: 1, padding: 20, backgroundColor: '#f5f5f5',
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 20 : 20,
+  },
   loader: { flex: 1, justifyContent: 'center' },
   label: { fontSize: 16, marginBottom: 5, color: '#333' },
   input: {

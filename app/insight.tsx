@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { RelatorioGerado } from '../src/types/report.types';
 import { theme } from '../src/styles/theme';
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   headerGradient: {
     padding: theme.spacing.xl,
-    paddingTop: theme.spacing.xl, 
+    paddingTop: (Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0) + theme.spacing.xl,
     alignItems: 'center',
     position: 'relative', 
   },

@@ -1,5 +1,13 @@
 import api from './api';
 import { FocusSession } from '../types/focus.types';
+import { AxiosError } from 'axios';
+
+const getApiErrorMessage = (error: any): string => {
+  if (error instanceof AxiosError && error.response?.data?.message) {
+    return error.response.data.message;
+  }
+  return 'Ocorreu um erro inesperado. Tente novamente.';
+};
 
 class FocusService {
   //Inicia uma nova sessão de foco para um usuário no backend.
@@ -11,7 +19,8 @@ class FocusService {
       console.log('[FocusService] Sessão iniciada com sucesso:', data);
       return data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Erro ao iniciar a sessão de foco.';
+      const defaultMessage = 'Erro ao iniciar a sessão de foco.';
+      const errorMessage = getApiErrorMessage(error) || defaultMessage;
       console.error('[FocusService] Erro:', errorMessage);
       throw new Error(errorMessage);
     }
@@ -26,7 +35,8 @@ class FocusService {
       console.log('[FocusService] Sessão encerrada com sucesso:', data);
       return data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Erro ao encerrar a sessão de foco.';
+      const defaultMessage = 'Erro ao encerrar a sessão de foco.';
+      const errorMessage = getApiErrorMessage(error) || defaultMessage;
       console.error('[FocusService] Erro:', errorMessage);
       throw new Error(errorMessage);
     }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert, SafeAreaView, Platform, StatusBar } from 'react-native';
+import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { Tarefa } from '../../src/types/models';
 import taskService from '../../src/services/taskService';
 import { theme } from '../../src/styles/theme';
@@ -24,12 +24,19 @@ function DetailRow({ icon, label, value }: { icon: React.ReactNode, label: strin
 export default function TaskDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const navigation = useNavigation();
   const [tarefa, setTarefa] = useState<Tarefa | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (id && typeof id === 'string') {
       loadTaskDetails(id);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (tarefa) {
+      navigation.setOptions({ title: 'Detalhes da Tarefa' });
     }
   }, [id]);
 
@@ -85,7 +92,6 @@ export default function TaskDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: 'Detalhes da Tarefa', headerBackTitle: 'Voltar' }} />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>{tarefa.titulo}</Text>
 
@@ -123,6 +129,12 @@ export default function TaskDetailScreen() {
             variant="danger"
             style={{ marginTop: theme.spacing.md }}
           />
+          <Button
+            title="Voltar"
+            onPress={() => router.back()}
+            variant="outline"
+            style={{ marginTop: theme.spacing.md }}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -130,7 +142,11 @@ export default function TaskDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   content: { padding: theme.spacing.lg, flexGrow: 1 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   title: {

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Button, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import taskService from '../../src/services/taskService';
@@ -50,7 +50,7 @@ export default function TaskListScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Button title="Adicionar Tarefa" onPress={() => navigation.navigate('TaskForm', {})} />
       <FlatList
         data={tasks}
@@ -59,12 +59,16 @@ export default function TaskListScreen() {
         contentContainerStyle={styles.list}
         ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma tarefa encontrada.</Text>}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f4f7' },
+  container: {
+    flex: 1,
+    backgroundColor: '#f0f4f7',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { padding: 16 },
   itemContainer: {

@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('[AuthContext] Iniciando processo de signIn...');
     try {
       const response = await authService.login(credentials);
-      const { usuario: user, token: authToken } = response;
+       const { usuario: user, token: authToken } = response;
 
       setUsuario(user);
       setToken(authToken);

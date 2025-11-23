@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ScrollView, StyleSheet, Alert, ActivityIndicator, View, Text } from 'react-native';
+import { ScrollView, StyleSheet, Alert, ActivityIndicator, View, Text, SafeAreaView } from 'react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { MeetingForm, MeetingFormData } from '../../../src/screens/MeetingForm';
 import { UpdateReuniaoDTO, Reuniao } from '../../../src/types/models';
@@ -78,10 +78,12 @@ export default function EditMeetingScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Stack.Screen options={{ title: 'Editar Reunião' }} />
-      <MeetingForm initialData={meeting} onSave={handleSave} isSaving={isSaving} />
-    </ScrollView>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Stack.Screen options={{ title: 'Editar Reunião' }} />
+        <MeetingForm initialData={meeting} onSave={handleSave} isSaving={isSaving} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

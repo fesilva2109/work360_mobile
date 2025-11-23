@@ -9,6 +9,8 @@ import {
   SafeAreaView,
   SectionList,
   Alert,
+  Platform,
+  StatusBar,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
@@ -202,12 +204,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: Platform.OS === 'android' ? theme.spacing.md : 0,
   },
   title: {
     fontSize: 28,
@@ -225,6 +229,7 @@ const styles = StyleSheet.create({
   },
   filterWrapper: {
     paddingBottom: theme.spacing.sm,
+    marginTop: theme.spacing.lg,
   },
   filterContainer: {
     flexDirection: 'row',

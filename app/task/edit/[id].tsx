@@ -122,6 +122,12 @@ export default function EditTaskScreen() {
 
           <View style={styles.buttonContainer}>
             <Button title={isSaving ? 'Salvando...' : 'Salvar Alterações'} onPress={handleUpdateTask} disabled={isSaving} />
+            <Button
+              title="Voltar"
+              onPress={() => router.back()}
+              variant="outline"
+              style={{ marginTop: theme.spacing.md }}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
