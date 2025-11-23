@@ -22,6 +22,10 @@ export default {
     ios: {
       supportsTablet: true
     },
+    android: {
+      "package": "com.fiap.work360",
+      "googleServicesFile": "./google-services.json"
+    },
     web: {
       bundler: "metro",
       output: "single",
@@ -33,6 +37,9 @@ export default {
     },
     extra: {
       commitHash: getCommitHash(),
+      eas: {
+        "projectId": "70316630-be25-48ea-8ce1-4006d1608468"
+      }
     },
   }
 };

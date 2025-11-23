@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "274979670734",
+    "project_id": "work360-ceac3",
+    "storage_bucket": "work360-ceac3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:274979670734:android:8c739e1b7240d355bd1e9f",
+        "android_client_info": {
+          "package_name": "com.fiap.work360"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRa90wGy54gWUhJSW1fs08jrjYkSstcSo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

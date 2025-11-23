@@ -11,12 +11,9 @@
       "distribution": "internal"
     },
     "production": {
-      "env": {
-        "COMMIT_HASH": "git rev-parse --short HEAD"
-      }
     }
   },
   "submit": {
     "production": {}
-  }
+  },
 }
